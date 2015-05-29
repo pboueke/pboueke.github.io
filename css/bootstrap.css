@@ -3388,6 +3388,13 @@ input[type="button"].btn-block {
 .collapse {
   display: none;
 }
+.collapse.width { /*Added for horizontal collapse*/
+    height: auto;
+    -webkit-transition: width 0.35s ease;
+    -moz-transition: width 0.35s ease;
+    -o-transition: width 0.35s ease;
+    transition: width 0.35s ease;
+}
 .collapse.in {
   display: block;
 }
@@ -4196,9 +4203,10 @@ select[multiple].input-group-sm > .input-group-btn > .btn {
 }
 .navbar-toggle {
   position: relative;
-  float: right;
+  float: left;
   padding: 9px 10px;
   margin-top: 8px;
+  margin-left: 15px;
   margin-right: 15px;
   margin-bottom: 8px;
   background-color: transparent;
@@ -4492,7 +4500,7 @@ fieldset[disabled] .navbar-default .btn-link:focus {
   color: #ccc;
 }
 .navbar-inverse {
-  background-color: #222;
+  background-color: #000;
   border-color: #080808;
 }
 .navbar-inverse .navbar-brand {
