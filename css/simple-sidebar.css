@@ -6,6 +6,10 @@
 
 /* Toggle Styles */
 
+body{
+  background-color: #b0aba0;
+}
+
 #wrapper {
     padding-left: 0;
     -webkit-transition: all 0.5s ease;
@@ -26,7 +30,7 @@
     height: 100%;
     margin-left: -250px;
     overflow-y: auto;
-    background: #000;
+    background: #181712;
     -webkit-transition: all 0.5s ease;
     -moz-transition: all 0.5s ease;
     -o-transition: all 0.5s ease;
@@ -41,11 +45,12 @@
     width: 100%;
     position: absolute;
     padding: 15px;
+    background-color: #afaba0;
 }
 
 #wrapper.toggled #page-content-wrapper {
     position: absolute;
-    margin-right: -250px;
+    margin-right: -200px;
 }
 
 /* Sidebar Styles */
@@ -61,6 +66,12 @@
 
 .sidebar-ref {
     margin-left: 50px;
+}
+
+#sidebar-wrapper .sidebar-notice {
+  position: absolute;;
+  margin-left: 25px;
+  top: 30px;
 }
 
 .sidebar-nav li {
@@ -86,6 +97,8 @@
 }
 
 .sidebar-nav > .sidebar-brand {
+      margin-left: 50px;
+
     height: 65px;
     font-size: 18px;
     line-height: 60px;
@@ -118,6 +131,7 @@
     }
 
     #page-content-wrapper {
+      margin-left: -50px;
         padding: 20px;
         position: relative;
     }
@@ -145,6 +159,7 @@
     float: left;
   }
 }
+
 .navbar-collapse {
   padding-right: 15px;
   padding-left: 15px;
@@ -342,8 +357,8 @@
 }
 
 .navbar-inverse {
-  background-color: #000;  /*Chnage navbar color*/
-  border-color: #080808;
+  background-color: #181712;  /*Chnage navbar color*/
+  border-color: #757571;
 }
 .navbar-inverse .navbar-brand {
   color: #9d9d9d;
