@@ -3,7 +3,19 @@
 
 <head>
 
-    <link rel="shortcut icon" type="image/x-icon" href="images/pb.ico" />`
+        <!-- Bootstrap Core CSS -->
+    <link href="css/bootstrap.min.css" rel="stylesheet">
+
+    <!--<link href="css/bootstrap.css" rel="stylesheet"> <!-- Added to template --> 
+
+    <!-- Custom CSS -->
+    <link href="css/simple-sidebar.css" rel="stylesheet">
+    <link href="css/blog-post.css" rel="stylesheet">
+
+    <script language="JavaScript" type="text/javascript" src="js/jquery.js"></script>
+    <script language="JavaScript" type="text/javascript" src="js/bootstrap.js"></script>
+
+    <link rel="shortcut icon" type="x-icon" href="images/pb.ico" />`
 
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
@@ -11,15 +23,7 @@
     <meta name="description" content="">
     <meta name="author" content="">
 
-    <title>pboueke's corner</title>
-
-    <!-- Bootstrap Core CSS -->
-    <link href="css/bootstrap.min.css" rel="stylesheet">
-
-    <!--<link href="css/bootstrap.css" rel="stylesheet"> <!-- Added to template --> 
-
-    <!-- Custom CSS -->
-    <link href="css/simple-sidebar.css" rel="stylesheet">
+    <title>Ressources</title>
 
     <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
     <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
@@ -30,7 +34,7 @@
 
 </head>
 
-<body bgcolor="#757571">
+<body bgcolor="#fff">
 
      <nav id="navbar" class="navbar navbar-inverse navbar-fixed-top" role="navigation">
         <div class="container">
@@ -84,14 +88,140 @@
         <!-- Page Content -->
         <div id="page-content-wrapper">
             <div class="container-fluid">
-                <div class="row">
-                    <div class="col-lg-12">
-                        <br><br>
-                        <h1>placeholder title</h1>
-                        <p>placeholder text</p>
-                        <!--<p>Make sure to keep all page content within the <code>#page-content-wrapper</code>.</p>-->
-                    </div>
+                 <div class="container">
+
+        <div class="row">
+
+            <!-- Blog Post Content Column -->
+            <div class="col-md-12">
+
+                <!-- Blog Post -->
+                <br><br>
+                <!-- Title -->
+                <h1>Ressources
+                    <small>&nbsp;&nbsp;{reference both for me and for the people I talk to}</h1>
+
+                <!-- Author -->
+                <hr>
+
+                <!-- Date/Time -->
+                <p><span class="glyphicon glyphicon-time"></span> Last Update: May 31, 2015</p>
+                <hr>
+                
+                <div class="well">
+                    Check <a href="https://thiagowfx.github.io/">thiagofx</a>'s page.
                 </div>
+
+
+
+               <div class="row">
+
+    <nav class="col-xs-3 bs-docs-sidebar" float="left">
+        <ul id="sidebar" class="nav nav-stacked fixed">
+            <li>
+                <a href="#GroupA">Gamedev</a>
+                <ul class="nav nav-stacked">
+                    <li><a href="#GroupASub1">Engines</a></li>
+                    <li><a href="#GroupASub2">Art</a></li>
+                    <li><a href="#GroupASub3">Sound/Music</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#GroupB">CSS, Frameworks, Front-end</a>
+                <ul class="nav nav-stacked">
+                    <li><a href="#GroupBSub1">Color palettes</a></li>
+                    <li><a href="#GroupBSub2">Frameworks</a></li>
+                </ul>
+            </li>
+            <li>
+                <a href="#GroupC">Graphs</a>
+                <ul class="nav nav-stacked">
+                    <li><a href="#GroupCSub1">Libs</a></li>
+                    <li><a href="#GroupCSub2">Others</a></li>
+                </ul>
+            </li>
+        </ul>
+    </nav>
+    <!--Main Content -->
+    <div class="col-md-8">
+        <br><br><br><br><br><br>
+        <section id="GroupA" class="group">
+            <h3><b>Gamedev</b></h3>
+            <div id="GroupASub1" class="subgroup">
+                <h4 align="justify"><b>Engines:</b> <br>
+                    <a href="https://unity3d.com/">Unity</a><br>
+                    <a href="https://www.unrealengine.com/">Unreal</a><br>
+                    <a href="http://www.godotengine.org/wp/">Godot</a><br>
+                </h4>
+            </div>
+            <div id="GroupASub2" class="subgroup">
+                <h4 align="justify"><b>Art:</b> <br>
+                    <a href="http://www.gimp.org/">Gimp</a><br>
+                    <a href="https://inkscape.org/en/">Inkscape</a><br>
+                </h4>
+            </div>
+            <div id="GroupASub3" class="subgroup">
+                <h4 align="justify"><b>Sound/Music:</b> <br>
+                    <a href="http://www.freesfx.co.uk/">freeSFX</a><br>
+                    <a href="http://incompetech.com/music/">Incompetech</a><br>
+                </h4>
+            </div>
+        </section>
+        <section id="GroupB" class="group">
+            <h3><b>CSS, Frameworks, Front-end</b></h3>
+            <div id="GroupBSub1" class="subgroup">
+                <h4 align="justify"><b>Color palettes:</b> <br>
+                    <a href="http://paletton.com/#uid=1000u0khJM96UY7cPSNlVEeq7w7">Paletton</a><br>
+                    <a href="https://color.adobe.com/pt/">Adobe Color CC</a><br>
+                </h4>
+            </div>
+            <div id="GroupBSub2" class="subgroup">
+                <h4 align="justify"><b>Frameworks</b> <br>
+                    <a href="http://getbootstrap.com/">Bootstrap</a><br>
+                    <a href="http://getskeleton.com/">Skeleton</a><br>
+                    <a href="http://www.yaml.de/">YAML 4</a><br>
+                    <a href="https://developers.google.com/web/tools/starter-kit/">Google Developers Web Starter Kit</a><br>
+                </h4>
+            </div>
+        </section>
+        <section id="GroupC" class="group">
+            <h3>Group C</h3>
+            <div id="GroupCSub1" class="subgroup">
+                <h4 align="justify"><b>Libs:</b> <br>
+                    <a href="http://www.gnuplot.info/">gnuplot</a><br>
+                    <a href="http://matplotlib.org/">matplotlib</a><br>
+                </h4>
+            </div>
+            <div id="GroupCSub2" class="subgroup">
+                     <h4 align="justify"><b>Others:</b> <br>
+                    <a href="https://plot.ly/">plotly</a><br>
+                </h4>
+            </div>
+        </section>    
+    </div>
+</div>
+<br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+                <hr>
+
+
+            <script type="text/javascript">
+                $('body').scrollspy({
+                    target: '.bs-docs-sidebar',
+                    offset: 90
+                });
+            </script>
+
+              
+            </div>
+
+
+    </div>
+    <!-- /.container -->
+
+</body>
+
+</html>
+
             </div>
         </div>
 
@@ -99,12 +229,6 @@
 
     </div>
     <!-- /#wrapper -->
-
-    <!-- jQuery -->
-    <script src="js/jquery.js"></script>
-
-    <!-- Bootstrap Core JavaScript -->
-    <script src="js/bootstrap.min.js"></script>
 
     <!-- Menu Toggle Script -->
     <script>
