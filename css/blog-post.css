@@ -21,6 +21,12 @@ footer {
   font-size: 18px;
   line-height: 20px;*/
 }
+
+.navbar-inverse {
+  background-color: #181712;  /*Chnage navbar color*/
+  border-color: #757571;
+  height: 50px;
+}
 .group {
     width: 100%;
 }
