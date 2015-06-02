@@ -262,7 +262,8 @@ body{
   border-width: 1px 0 0;
 }
 .navbar-brand {
-  float: left;
+  /*float: left;*/
+  position: absolute;
   margin-top: 5px;
   /*margin-left: 50px;
   height: 50px;
