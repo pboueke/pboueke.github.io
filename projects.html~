@@ -107,7 +107,7 @@
                     <img class="img-responsive" src="http://i.imgur.com/f17dWEa.png" alt="">
                 </a>
             </div>
-            <div class="col-md-6">
+            <div class="col-md-7">
                 <h3>Marcopolis</h3>
                 <h4>Work in Progress</h4>
                 <p>Simple RTS game designed for Android devices using Unity2d.</p>
