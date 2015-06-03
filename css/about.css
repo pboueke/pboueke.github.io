@@ -1,0 +1,10 @@
+@media(min-width:768px) {
+	.profile-pic{
+		width: 70%
+	}
+}
+@media(max-width:768px) {
+	.profile-pic{
+		width: 100%;
+	}
+}
