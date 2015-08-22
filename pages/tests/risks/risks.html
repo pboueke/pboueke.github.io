@@ -1,0 +1,25 @@
+<html>
+
+ <head>
+ <style>
+ #main { background: -webkit-canvas(squares); height:800px; border:2px solid black }
+ </style>
+ <script src="risks.js"></script>
+ </head>
+
+ <body>
+   <form>
+     Number of 'riders':<input type="number" name="Riders" id="riders" min="0" max="1000">
+     Speed modifier:<input type="number" name="Speed" id="speed" min="0" max="1000">
+     Square size:<input type="number" name="Size" id="size" min="0" max="1000">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     <input type="button" id="startbt" value="Start" onclick="start()">
+     &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+     <input type="button" id="reloadbt" value="Reset" onclick="reload()">
+   </form>
+
+   <div id="main">
+   </div>
+ </body>
+
+</html>
