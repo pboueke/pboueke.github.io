@@ -186,7 +186,6 @@ function SimpleGrid(number_elements, spacing, element_size) {
             current_neighbor = grid[0].grid_index.getNeighbors(index);
             this.radius = radius * 1.1;
             this.fill = "rgb(255,0,0)";
-            console.log(index);
             for (kterator = 0; kterator < 6; kterator += 1) {
                 try {
                     grid[current_neighbor[kterator]].hexagon.fill = "rgb(255, 102, 0)";
@@ -282,8 +281,8 @@ function SimpleGrid(number_elements, spacing, element_size) {
 
 SimpleGrid.prototype.element = function () {
     "use strict";
-    var hex_op = new Hex(1),
-        is_diagonal = false,
+    this.hex_op = new Hex(1);
+    var is_diagonal = false,
         position = -1,
         radius = -1,
         angle = -1;
@@ -301,13 +300,13 @@ SimpleGrid.prototype.element = function () {
     };
     this.update = function (id) {
         var iterator;
-        hex_op.grid_index = id;
-        radius = hex_op.getNumberOfRings(id);
+        this.hex_op.grid_index = id;
+        radius = this.hex_op.getNumberOfRings(id);
         //converts id to angle, where d0 = 0, d4 = 240, and so on.
-        angle = id - hex_op.getDiagonalElement(0, hex_op.getNumberOfRings(id));
-        angle = angle * (60.0 / hex_op.getNumberOfRings(id));
+        angle = id - this.hex_op.getDiagonalElement(0, this.hex_op.getNumberOfRings(id));
+        angle = angle * (60.0 / this.hex_op.getNumberOfRings(id));
         for (iterator = 0; iterator < 6; iterator += 1) {
-            if (hex_op.getDiagonalElement(iterator, radius) === id) {
+            if (this.hex_op.getDiagonalElement(iterator, radius) === id) {
                 is_diagonal = true;
                 position = iterator;
                 break;
@@ -316,12 +315,12 @@ SimpleGrid.prototype.element = function () {
         if (!is_diagonal) {
             for (iterator = 0; iterator < 6; iterator += 1) {
                 if (iterator === 5) {
-                    if (hex_op.getDiagonalElement(iterator, radius) < id) {
+                    if (this.hex_op.getDiagonalElement(iterator, radius) < id) {
                         position = iterator;
                         break;
                     }
                 }
-                if ((hex_op.getDiagonalElement(iterator, radius) < id) && (id < hex_op.getDiagonalElement(iterator + 1, radius))) {
+                if ((this.hex_op.getDiagonalElement(iterator, radius) < id) && (id < this.hex_op.getDiagonalElement(iterator + 1, radius))) {
                     position = iterator;
                     break;
                 }
@@ -337,7 +336,23 @@ SimpleGrid.prototype.ringDistance = function (a, b) {
     "use strict";
     var hex_op = new Hex(1),
         radius = hex_op.getNumberOfRings(a);
-    return Math.min(Math.abs(a - b), a - (6 * radius + a));
+    return Math.min(Math.abs(a - b),  Math.abs((6 * radius - (a - b))));
+};
+
+SimpleGrid.prototype.angleDelta = function (a, b) {
+  /* Returns the in ring distance between the two elements.
+  *  Parameters a and b must be on the same ring.
+  */
+    "use strict";
+    var r1 = a - b,
+        r2 = b - a;
+        if (r1 < 0) {
+            r1 += 360;
+        }
+        if (r2 < 0) {
+            r2 += 360;
+        }
+        return Math.min (r1, r2);
 };
 
 SimpleGrid.prototype.regionDistance = function (a, b, a_d, b_d) {
@@ -350,15 +365,19 @@ SimpleGrid.prototype.regionDistance = function (a, b, a_d, b_d) {
         aux_pos1,
         aux_pos2,
         iterator,
-        jterator;
+        jterator,
+        aux_i,
+        aux_j;
     if (a_d && b_d) {  //a and b are diagonals
-        aux_pos1 = a;
-        aux_pos2 = b;
+        console.log("BOTH ELEMENTS", a, b, "ARE DIAGONALS");
+        aux_pos1 = Math.max(a, b);
+        aux_pos2 = Math.min(a, b);
         d_vector = [0, 0, 1, 3, 1, 0];  //diagonal vs diagonal distance vector
         for (iterator = 0; iterator < 6; iterator += 1) {
             jterator = 0;
             while (jterator <= iterator) {
                 if (aux_pos1 === iterator && aux_pos2 === jterator) {
+                    console.log("RD ASSIGNED");
                     rd = d_vector[jterator];
                     iterator = 6; //breaks nested loop
                     break;
@@ -373,21 +392,43 @@ SimpleGrid.prototype.regionDistance = function (a, b, a_d, b_d) {
             d_vector.pop();
         }
     } else if ((a_d && !b_d) || (!a_d && b_d)) {  //only one of them is a diagonal
-        if (!a_d) {  //aux_pos2 must be the diagonal one
-            aux_pos1 = a;
-            aux_pos2 = b;
+        if (!a_d) {
+            console.log(b, "IS DIAGONAL", a, "ISN'T");
+            aux_pos1 = Math.max(a, b);
+            aux_pos2 = Math.min(a, b);
         } else {
-            aux_pos1 = a;
-            aux_pos2 = b;
+            console.log(a, "IS DIAGONAL", b, "ISN'T");
+            aux_pos1 = Math.max(a, b);
+            aux_pos2 = Math.min(a, b);
         }
-        d_vector = [0, 1, 2, 3, 4, 5];  //region vs diagonal distance vector
+        d_vector = [0, 0, 1, 2, 2, 1];  //region vs diagonal distance vector
         for (iterator = 0; iterator < 6; iterator += 1) {
             jterator = 0;
             while (jterator <= iterator) {
-                if (aux_pos1 === iterator && aux_pos2 === jterator) {
-                    rd = d_vector[jterator];
-                    iterator = 6; //breaks nested loop
-                    break;
+                if (!a_d) {
+                    aux_i = jterator;
+                    aux_j = iterator;
+                } else {
+                    aux_i = iterator;
+                    aux_j = jterator;
+                }
+                //console.log(aux_pos1, aux_i, aux_pos2, aux_j)
+                if (aux_pos1 === aux_i && aux_pos2 === aux_j) {
+                    if (!a_d) {
+                        rd = d_vector[jterator];
+                        iterator = 6; //breaks nested loop
+                        break;
+                    } else {
+                        if (jterator + 1 === 6) {
+                            console.log(d_vector[0]);
+                            rd = d_vector[0];
+                        } else {
+                            console.log(d_vector[jterator + 1]);
+                            rd = d_vector[jterator + 1];
+                        }
+                        iterator = 6; //breaks nested loop
+                        break;
+                    }
                 }
                 if (iterator === (5 - jterator)) {
                     break;
@@ -398,9 +439,10 @@ SimpleGrid.prototype.regionDistance = function (a, b, a_d, b_d) {
             d_vector.pop();
         }
     } else {  //none of them is a diagonal
-        aux_pos1 = a;
-        aux_pos2 = b;
-        d_vector = [0, 0, 1, 2, 2, 1];  //region vs region distance vector
+        console.log("BOTH ELEMENTS", a, b, "ARE NOT DIAGONALS");
+        aux_pos1 = Math.max(a, b);
+        aux_pos2 = Math.min(a, b);
+        d_vector = [0, 1, 2, 3, 2, 1];  //region vs region distance vector
         for (iterator = 0; iterator < 6; iterator += 1) {
             jterator = 0;
             while (jterator <= iterator) {
@@ -454,17 +496,28 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
         he.update(a);
         le.update(b);
     }
+    rd = this.regionDistance(he.getPosition(), le.getPosition(), he.getDiagonal(), le.getDiagonal());
+    if (rd === 3) {
+        console.log("RD = 3");
+        console.log("d = ", d);
+        return he.getRadius() + le.getRadius();
+    }
+    if (rd <= 1) {
+        console.log("RD <= 1");
+        console.log("d = ", d);
+        return d + this.ringDistance(he.hex_op.grid_index, le.hex_op.grid_index);
+    }
     //equalizes radius
     aux_he_angle = he.getAngle();
     while (he.getRadius() !== le.getRadius()) {
         aux_he_neighbors = he.hex_op.getNeighbors(he.hex_op.grid_index);
         for (iterator = 0; iterator < 6; iterator += 1) {
-            if (he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]) <
-                    he.getRadius()) {
+            if (he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]) < he.getRadius()) {
                 aux_angle = aux_he_neighbors[iterator] - he.hex_op.getDiagonalElement(0, he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]));
                 aux_angle = aux_angle * (60.0 / he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]));
-                aux_angle = Math.min(aux_angle, 360.0 - aux_angle);
-                if (Math.abs(aux_angle - le.getAngle()) <= Math.abs(aux_he_angle - le.getAngle())) {
+                console.log(aux_he_neighbors[iterator]);
+                console.log(le.getAngle(), "-", aux_angle, "<=", le.getAngle(), "-", aux_he_angle  );
+                if (this.angleDelta(le.getAngle(), aux_angle) <= this.angleDelta(le.getAngle(), aux_he_angle)) {
                     aux_he_angle = aux_angle;
                     aux_he = aux_he_neighbors[iterator];
                 }
@@ -473,45 +526,69 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
         he.update(aux_he);
         d += 1;
     }
+    if (he.hex_op.grid_index ===  le.hex_op.grid_index) {
+        return d;
+    }
+    console.log('RAIOS EQUALIZADOS');
+    console.log('HE: ', he.hex_op.grid_index);
+    console.log('LE: ', le.hex_op.grid_index);
     //finds the region distance ('rd')' between 'he' and 'le'
-    rd = this.regionDistance(he.hex_op.grid_index, le.hex_op.grid_index, he.getDiagonal(), le.getDiagonal());
+    rd = this.regionDistance(he.getPosition(), le.getPosition(), he.getDiagonal(), le.getDiagonal());
+    console.log("RD CALCULATED", rd);
     if (rd === 3) {
-        return d + le.getRadius();
+        console.log("RD = 3");
+        console.log("d = ", d);
+        return d + le.getRadius() + he.getRadius();
     }
     if (rd <= 1) {
+        console.log("RD <= 1");
+        console.log("d = ", d);
         return d + this.ringDistance(he.hex_op.grid_index, le.hex_op.grid_index);
     }
     if (rd === 2) {
+        console.log("STARTING RD=2 PROCESS");
+        var debug = 0;
+        aux_he_angle = he.getAngle();
+        aux_le_angle = le.getAngle();
         while (rd > 1) {
+            aux_he_neighbors = he.hex_op.getNeighbors(he.hex_op.grid_index);
             for (iterator = 0; iterator < 6; iterator += 1) {
-                if (he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]) <
-                        he.getRadius()) {
+                if (he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]) < he.getRadius()) {
                     aux_angle = aux_he_neighbors[iterator] - he.hex_op.getDiagonalElement(0, he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]));
                     aux_angle = aux_angle * (60.0 / he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]));
-                    aux_angle = Math.min(aux_angle, 360.0 - aux_angle);
-                    if (Math.abs(aux_angle - le.getAngle()) <= Math.abs(aux_he_angle - le.getAngle())) {
+                    if (this.angleDelta(le.getAngle(), aux_angle) <= this.angleDelta(le.getAngle(), aux_he_angle)) {
                         aux_he_angle = aux_angle;
                         aux_he = aux_he_neighbors[iterator];
+                        console.log("NEW HE ", aux_he);
                     }
                 }
             }
             he.update(aux_he);
+            aux_le_neighbors = le.hex_op.getNeighbors(le.hex_op.grid_index);
             for (iterator = 0; iterator < 6; iterator += 1) {
-                if (le.hex_op.getNumberOfRings(aux_le_neighbors[iterator]) <
-                        le.getRadius()) {
+                console.log(aux_le_neighbors[iterator]);
+                if (le.hex_op.getNumberOfRings(aux_le_neighbors[iterator]) < le.getRadius()) {
                     aux_angle = aux_le_neighbors[iterator] - le.hex_op.getDiagonalElement(0, le.hex_op.getNumberOfRings(aux_le_neighbors[iterator]));
                     aux_angle = aux_angle * (60.0 / le.hex_op.getNumberOfRings(aux_le_neighbors[iterator]));
-                    aux_angle = Math.min(aux_angle, 360.0 - aux_angle);
-                    if (Math.abs(aux_angle - he.getAngle()) <= Math.abs(aux_le_angle - he.getAngle())) {
+                    if (this.angleDelta(he.getAngle(), aux_angle) <= this.angleDelta(he.getAngle(), aux_le_angle)) {
                         aux_le_angle = aux_angle;
                         aux_le = aux_le_neighbors[iterator];
+                        console.log("NEW LE ", aux_le);  //((target - origin) + 180)%360 - 180 aux_le_angle  (a % n + n) % n  //a - floor(a/n) * n    a = (a + 180) % 360 - 180
+
                     }
                 }
             }
             le.update(aux_le);
-            d += 2
-            rd = this.regionDistance(he.hex_op.grid_index, le.hex_op.grid_index, he.getDiagonal(), le.getDiagonal());
+            d += 2;
+            rd = this.regionDistance(he.getPosition(), le.getPosition(), he.getDiagonal(), le.getDiagonal());
+            console.log("NEW RD ", rd);
+            console.log("NEW HE ", he.hex_op.grid_index, "NEW LE ", le.hex_op.grid_index)
+            if (debug === 1){
+                break;
+            }
+            debug += 1;
         }
+        console.log("d", d, "+", this.ringDistance(he.hex_op.grid_index, le.hex_op.grid_index), he.hex_op.grid_index, le.hex_op.grid_index);
         return d + this.ringDistance(he.hex_op.grid_index, le.hex_op.grid_index);
     }
 };
