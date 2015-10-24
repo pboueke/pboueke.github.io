@@ -3,7 +3,7 @@
 /*
 * Unidimensional Hexagonal Grid
 * Author: Pedro H. Boueke <p h b o u e k e "at" p o l i . u f r j . b r>
-* Version: 1.0.21.10.15 (by mistake, higher than 1.0.30.10.15)
+* Version: 1.0.24.10.15 (by mistake, higher than 1.0.30.10.15)
 *
 * This is how the hexagonal grid is represented:
 *
@@ -450,6 +450,7 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
         return d + this.ringDistance(he.hex_op.grid_index, le.hex_op.grid_index);
     }
     //in this case we need to reduce the radius of both he and le untill rd <= 1
+    //so that we can use the previous method
     if (rd === 2) {
         aux_he_angle = he.getAngle();
         aux_le_angle = le.getAngle();
