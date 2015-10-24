@@ -3,7 +3,7 @@
 /*
 * Unidimensional Hexagonal Grid
 * Author: Pedro H. Boueke <p h b o u e k e "at" p o l i . u f r j . b r>
-* Version: 1.0.19.10.15 (by mistake, higher than 1.0.30.10.15)
+* Version: 1.0.21.10.15 (by mistake, higher than 1.0.30.10.15)
 *
 * This is how the hexagonal grid is represented:
 *
@@ -206,6 +206,8 @@ function SimpleGrid(number_elements, spacing, element_size) {
         });
         canvas.addChild(this.hexagon);
     }
+    //Each hex (MasterHex) position is the result of incrementing the previous position
+    //based on the region of the current hex.
     grid[0] = new MasterHex(0, current_position[0], current_position[1], element_size);
     current_position[0] += x_dist * 0.5;
     current_position[1] -= y_dist;
@@ -224,7 +226,7 @@ function SimpleGrid(number_elements, spacing, element_size) {
     current_position[0] += x_dist * 0.5;
     current_position[1] -= y_dist;
     grid[6] = new MasterHex(6, current_position[0], current_position[1], element_size);
-    //first ring must be initialized
+    //First ring must be initialized
     for (iterator = 7; iterator < size; iterator += 1) {
         is_diagonal = false;
         position = -1;
@@ -280,8 +282,9 @@ function SimpleGrid(number_elements, spacing, element_size) {
 }
 
 SimpleGrid.prototype.element = function () {
+    //Store values from a given index
     "use strict";
-    this.hex_op = new Hex(1);
+    this.hex_op = new Hex(1);  //hex operator
     var is_diagonal = false,
         position = -1,
         radius = -1,
@@ -336,131 +339,45 @@ SimpleGrid.prototype.ringDistance = function (a, b) {
     "use strict";
     var hex_op = new Hex(1),
         radius = hex_op.getNumberOfRings(a);
-    return Math.min(Math.abs(a - b),  Math.abs((6 * radius - (a - b))));
+    return Math.min(Math.abs(a - b),  Math.abs((6 * radius - Math.abs(a - b))));
 };
 
 SimpleGrid.prototype.angleDelta = function (a, b) {
-  /* Returns the in ring distance between the two elements.
-  *  Parameters a and b must be on the same ring.
+  /* Rturns angular difference with a and b between 0 and 360 degrees.
   */
     "use strict";
     var r1 = a - b,
         r2 = b - a;
-        if (r1 < 0) {
-            r1 += 360;
-        }
-        if (r2 < 0) {
-            r2 += 360;
-        }
-        return Math.min (r1, r2);
+    if (r1 < 0) {
+        r1 += 360;
+    }
+    if (r2 < 0) {
+        r2 += 360;
+    }
+    return Math.min(r1, r2);
 };
 
 SimpleGrid.prototype.regionDistance = function (a, b, a_d, b_d) {
   /* Returns the region distance between the two elements.
-  *  Parameters ad and bd are booleans that indicates whether or not or not a and b are diagonals.
+  *  Parameters a_d and b_d are booleans that indicates whether or not a and b are diagonals.
   */
     "use strict";
-    var rd,                       //distance between regions
-        d_vector,                 //distances between regions  (see: http://imgur.com/05bwTRL)
-        aux_pos1,
-        aux_pos2,
-        iterator,
-        jterator,
-        aux_i,
-        aux_j;
+    var d_vector,    //distances between regions  (see: http://imgur.com/05bwTRL)
+        iterator;
     if (a_d && b_d) {  //a and b are diagonals
-        console.log("BOTH ELEMENTS", a, b, "ARE DIAGONALS");
-        aux_pos1 = Math.max(a, b);
-        aux_pos2 = Math.min(a, b);
         d_vector = [0, 0, 1, 3, 1, 0];  //diagonal vs diagonal distance vector
-        for (iterator = 0; iterator < 6; iterator += 1) {
-            jterator = 0;
-            while (jterator <= iterator) {
-                if (aux_pos1 === iterator && aux_pos2 === jterator) {
-                    console.log("RD ASSIGNED");
-                    rd = d_vector[jterator];
-                    iterator = 6; //breaks nested loop
-                    break;
-                }
-                if (iterator === jterator) {
-                    break;
-                }
-                jterator += 1;
-            }
-            //shifts d_vector so that at each iteration of the main loop we parse another row of the matrix
-            d_vector.unshift(d_vector[5]);
-            d_vector.pop();
-        }
-    } else if ((a_d && !b_d) || (!a_d && b_d)) {  //only one of them is a diagonal
-        if (!a_d) {
-            console.log(b, "IS DIAGONAL", a, "ISN'T");
-            aux_pos1 = Math.max(a, b);
-            aux_pos2 = Math.min(a, b);
-        } else {
-            console.log(a, "IS DIAGONAL", b, "ISN'T");
-            aux_pos1 = Math.max(a, b);
-            aux_pos2 = Math.min(a, b);
-        }
+    } else if (a_d && !b_d) { //a is diagonal
+        d_vector = [0, 1, 2, 2, 1, 0];  //diagonal vs region distance vector
+    } else if (!a_d && b_d) { //b is diagonal
         d_vector = [0, 0, 1, 2, 2, 1];  //region vs diagonal distance vector
-        for (iterator = 0; iterator < 6; iterator += 1) {
-            jterator = 0;
-            while (jterator <= iterator) {
-                if (!a_d) {
-                    aux_i = jterator;
-                    aux_j = iterator;
-                } else {
-                    aux_i = iterator;
-                    aux_j = jterator;
-                }
-                //console.log(aux_pos1, aux_i, aux_pos2, aux_j)
-                if (aux_pos1 === aux_i && aux_pos2 === aux_j) {
-                    if (!a_d) {
-                        rd = d_vector[jterator];
-                        iterator = 6; //breaks nested loop
-                        break;
-                    } else {
-                        if (jterator + 1 === 6) {
-                            console.log(d_vector[0]);
-                            rd = d_vector[0];
-                        } else {
-                            console.log(d_vector[jterator + 1]);
-                            rd = d_vector[jterator + 1];
-                        }
-                        iterator = 6; //breaks nested loop
-                        break;
-                    }
-                }
-                if (iterator === (5 - jterator)) {
-                    break;
-                }
-                jterator += 1;
-            }
-            d_vector.unshift(d_vector[5]);
-            d_vector.pop();
-        }
     } else {  //none of them is a diagonal
-        console.log("BOTH ELEMENTS", a, b, "ARE NOT DIAGONALS");
-        aux_pos1 = Math.max(a, b);
-        aux_pos2 = Math.min(a, b);
         d_vector = [0, 1, 2, 3, 2, 1];  //region vs region distance vector
-        for (iterator = 0; iterator < 6; iterator += 1) {
-            jterator = 0;
-            while (jterator <= iterator) {
-                if (aux_pos1 === iterator && aux_pos2 === jterator) {
-                    rd = d_vector[jterator];
-                    iterator = 6; //breaks nested loop
-                    break;
-                }
-                if (iterator === jterator) {
-                    break;
-                }
-                jterator += 1;
-            }
-            d_vector.unshift(d_vector[5]);
-            d_vector.pop();
-        }
     }
-    return rd;
+    for (iterator = 0; iterator < a % 6; iterator += 1) { //parsing matrix
+        d_vector.unshift(d_vector[5]);
+        d_vector.pop();
+    }
+    return d_vector[b];
 };
 
 SimpleGrid.prototype.distanceEstimation = function (a, b) {
@@ -471,7 +388,7 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
     "use strict";
     var he = new this.element(),  //higher element
         le = new this.element(),  //lower element
-        d = 0,                    //distance between a and b
+        d = 0,                    //vertical distance between a and b
         rd,                       //distance between regions
         aux_he_neighbors = [-1, -1, -1, -1, -1, -1],
         aux_le_neighbors = [-1, -1, -1, -1, -1, -1],
@@ -496,16 +413,10 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
         he.update(a);
         le.update(b);
     }
+    //in case a and b are in 'opposite' regions, returns returns the sum of their radius.
     rd = this.regionDistance(he.getPosition(), le.getPosition(), he.getDiagonal(), le.getDiagonal());
     if (rd === 3) {
-        console.log("RD = 3");
-        console.log("d = ", d);
         return he.getRadius() + le.getRadius();
-    }
-    if (rd <= 1) {
-        console.log("RD <= 1");
-        console.log("d = ", d);
-        return d + this.ringDistance(he.hex_op.grid_index, le.hex_op.grid_index);
     }
     //equalizes radius
     aux_he_angle = he.getAngle();
@@ -515,8 +426,6 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
             if (he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]) < he.getRadius()) {
                 aux_angle = aux_he_neighbors[iterator] - he.hex_op.getDiagonalElement(0, he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]));
                 aux_angle = aux_angle * (60.0 / he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]));
-                console.log(aux_he_neighbors[iterator]);
-                console.log(le.getAngle(), "-", aux_angle, "<=", le.getAngle(), "-", aux_he_angle  );
                 if (this.angleDelta(le.getAngle(), aux_angle) <= this.angleDelta(le.getAngle(), aux_he_angle)) {
                     aux_he_angle = aux_angle;
                     aux_he = aux_he_neighbors[iterator];
@@ -526,28 +435,22 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
         he.update(aux_he);
         d += 1;
     }
+    //new found indexes are the same
     if (he.hex_op.grid_index ===  le.hex_op.grid_index) {
         return d;
     }
-    console.log('RAIOS EQUALIZADOS');
-    console.log('HE: ', he.hex_op.grid_index);
-    console.log('LE: ', le.hex_op.grid_index);
-    //finds the region distance ('rd')' between 'he' and 'le'
     rd = this.regionDistance(he.getPosition(), le.getPosition(), he.getDiagonal(), le.getDiagonal());
-    console.log("RD CALCULATED", rd);
+    //same as before where rd equals 3
     if (rd === 3) {
-        console.log("RD = 3");
-        console.log("d = ", d);
         return d + le.getRadius() + he.getRadius();
     }
+    //in case a quadrilateral figure can be formed between them (rd<=1) the distance equals the
+    //in-ring distance between he and le plus the vertical distance (d)
     if (rd <= 1) {
-        console.log("RD <= 1");
-        console.log("d = ", d);
         return d + this.ringDistance(he.hex_op.grid_index, le.hex_op.grid_index);
     }
+    //in this case we need to reduce the radius of both he and le untill rd <= 1
     if (rd === 2) {
-        console.log("STARTING RD=2 PROCESS");
-        var debug = 0;
         aux_he_angle = he.getAngle();
         aux_le_angle = le.getAngle();
         while (rd > 1) {
@@ -559,36 +462,26 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
                     if (this.angleDelta(le.getAngle(), aux_angle) <= this.angleDelta(le.getAngle(), aux_he_angle)) {
                         aux_he_angle = aux_angle;
                         aux_he = aux_he_neighbors[iterator];
-                        console.log("NEW HE ", aux_he);
                     }
                 }
             }
             he.update(aux_he);
             aux_le_neighbors = le.hex_op.getNeighbors(le.hex_op.grid_index);
             for (iterator = 0; iterator < 6; iterator += 1) {
-                console.log(aux_le_neighbors[iterator]);
                 if (le.hex_op.getNumberOfRings(aux_le_neighbors[iterator]) < le.getRadius()) {
                     aux_angle = aux_le_neighbors[iterator] - le.hex_op.getDiagonalElement(0, le.hex_op.getNumberOfRings(aux_le_neighbors[iterator]));
                     aux_angle = aux_angle * (60.0 / le.hex_op.getNumberOfRings(aux_le_neighbors[iterator]));
                     if (this.angleDelta(he.getAngle(), aux_angle) <= this.angleDelta(he.getAngle(), aux_le_angle)) {
                         aux_le_angle = aux_angle;
                         aux_le = aux_le_neighbors[iterator];
-                        console.log("NEW LE ", aux_le);  //((target - origin) + 180)%360 - 180 aux_le_angle  (a % n + n) % n  //a - floor(a/n) * n    a = (a + 180) % 360 - 180
-
                     }
                 }
             }
             le.update(aux_le);
+            //both he and le changed to their neighbors colsest to each other
             d += 2;
             rd = this.regionDistance(he.getPosition(), le.getPosition(), he.getDiagonal(), le.getDiagonal());
-            console.log("NEW RD ", rd);
-            console.log("NEW HE ", he.hex_op.grid_index, "NEW LE ", le.hex_op.grid_index)
-            if (debug === 1){
-                break;
-            }
-            debug += 1;
         }
-        console.log("d", d, "+", this.ringDistance(he.hex_op.grid_index, le.hex_op.grid_index), he.hex_op.grid_index, le.hex_op.grid_index);
         return d + this.ringDistance(he.hex_op.grid_index, le.hex_op.grid_index);
     }
 };
