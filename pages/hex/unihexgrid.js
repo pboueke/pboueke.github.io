@@ -158,14 +158,64 @@ var canvas = oCanvas.create({
     canvas: "#canvas"
 });
 
-function SimpleGrid(number_elements, spacing, element_size) {
+function SimpleGrid() {
     "use strict";
-    var grid = [],
-        current_neighbor = [],
-        hex_type = {"path": {"stdr.color" : "rgb(16,204,23)", "slct.color" : "rgb(255,80,45)", "hovr.color" : "rgb(109,255,156)",
+    this.grid = [];
+    this.hex_type = {"path": {"stdr.color" : "rgb(16,204,23)", "slct.color" : "rgb(255,80,45)", "hovr.color" : "rgb(109,255,156)",
                              "trac.color" : "rgb(255,102,0)", "path.color" : "rgb(204,102,16)", "trgt.color" : "rgb(255,80,45)",
-                             "traversability": 1}},
-        iterator,
+                             "traversability": 1}};
+}
+
+function MasterHex(sg, id, x_pos, y_pos, radius, type) {
+    /* This is the function that gives each hexagon it's physical form.
+    *  'sd' is a reference for the SimpleGrid
+    *  'id' is it's grid index.
+    *  'x_pos' and 'y_pos' it's coordinates on the canvas.
+    *  'radius' it's size
+    *  'type' it's an identificator for it's type, wich may mean color,
+    *   traversability and so on.
+    */
+    "use strict";
+    var kterator,
+        current_neighbor = [],
+        index = id;
+    this.tp = type;
+    this.grid_index = new Hex(id);
+    this.hexagon = canvas.display.polygon({
+        x: x_pos,
+        y: y_pos,
+        sides: 6,
+        radius: radius,
+        fill: sg.hex_type[type]["stdr.color"], //standard_color
+        rotation: 90
+    }).bind("mouseenter touchenter", function () {
+        current_neighbor = sg.grid[0].grid_index.getNeighbors(index);
+        this.radius = radius * 1.07;
+        this.fill = sg.hex_type[sg.grid[index].tp]["hovr.color"]; //hover_color;
+        for (kterator = 0; kterator < 6; kterator += 1) {
+            try {
+                sg.grid[current_neighbor[kterator]].hexagon.fill = sg.hex_type[sg.grid[current_neighbor[kterator]].tp]["trac.color"]; //trace_color
+            } catch (ignore) {
+            }
+        }
+        canvas.redraw();
+    }).bind("mouseleave touchleave", function () {
+        this.radius = radius;
+        this.fill = sg.hex_type[sg.grid[index].tp]["stdr.color"];
+        for (kterator = 0; kterator < 6; kterator += 1) {
+            try {
+                sg.grid[current_neighbor[kterator]].hexagon.fill = sg.hex_type[sg.grid[current_neighbor[kterator]].tp]["stdr.color"]; //standard_color
+            } catch (ignore) {
+            }
+        }
+        canvas.redraw();
+    });
+    canvas.addChild(this.hexagon);
+};
+
+SimpleGrid.prototype.createGrid = function (number_elements, spacing, element_size) {
+    "use strict";
+    var iterator,
         jterator,
         radius,
         position = -1,
@@ -174,76 +224,33 @@ function SimpleGrid(number_elements, spacing, element_size) {
         y_dist = 2 * element_size * 0.75 + spacing * 0.5,
         is_diagonal = false,
         current_position = [canvas.width / 2, canvas.height / 2];
-    function MasterHex(id, x_pos, y_pos, radius, type) {
-        /* This is the function that gives each hexagonal is physical form.
-        *  'id' is it's grid index.
-        *  'x_pos' and 'y_pos' it's coordinates on the canvas.
-        *  'radius' it's size
-        *  'type' it's an identificator for it's type, wich may mean color,
-        *   traversability and so on.
-        */
-        var kterator,
-            index = id;
-        this.tp = type;
-        this.grid_index = new Hex(id);
-        this.hexagon = canvas.display.polygon({
-            x: x_pos,
-            y: y_pos,
-            sides: 6,
-            radius: radius,
-            fill: hex_type[type]["stdr.color"], //standard_color
-            rotation: 90
-        }).bind("mouseenter touchenter", function () {
-            current_neighbor = grid[0].grid_index.getNeighbors(index);
-            this.radius = radius * 1.07;
-            this.fill = hex_type[grid[index].tp]["hovr.color"]; //hover_color;
-            for (kterator = 0; kterator < 6; kterator += 1) {
-                try {
-                    grid[current_neighbor[kterator]].hexagon.fill = hex_type[grid[current_neighbor[kterator]].tp]["trac.color"]; //trace_color
-                } catch (ignore) {
-                }
-            }
-            canvas.redraw();
-        }).bind("mouseleave touchleave", function () {
-            this.radius = radius;
-            this.fill = hex_type[grid[index].tp]["stdr.color"];
-            for (kterator = 0; kterator < 6; kterator += 1) {
-                try {
-                    grid[current_neighbor[kterator]].hexagon.fill = hex_type[grid[current_neighbor[kterator]].tp]["stdr.color"]; //standard_color
-                } catch (ignore) {
-                }
-            }
-            canvas.redraw();
-        });
-        canvas.addChild(this.hexagon);
-    }
     //Each hex (MasterHex) position is the result of incrementing the previous position
     //based on the region of the current hex.
-    grid[0] = new MasterHex(0, current_position[0], current_position[1], element_size, "path");
+    this.grid[0] = new MasterHex(this, 0, current_position[0], current_position[1], element_size, "path");
     current_position[0] += x_dist * 0.5;
     current_position[1] -= y_dist;
-    grid[1] = new MasterHex(1, current_position[0], current_position[1], element_size, "path");
+    this.grid[1] = new MasterHex(this, 1, current_position[0], current_position[1], element_size, "path");
     current_position[0] += x_dist * 0.5;
     current_position[1] += y_dist;
-    grid[2] = new MasterHex(2, current_position[0], current_position[1], element_size, "path");
+    this.grid[2] = new MasterHex(this, 2, current_position[0], current_position[1], element_size, "path");
     current_position[0] -= x_dist * 0.5;
     current_position[1] += y_dist;
-    grid[3] = new MasterHex(3, current_position[0], current_position[1], element_size, "path");
+    this.grid[3] = new MasterHex(this, 3, current_position[0], current_position[1], element_size, "path");
     current_position[0] -= x_dist;
-    grid[4] = new MasterHex(4, current_position[0], current_position[1], element_size, "path");
+    this.grid[4] = new MasterHex(this, 4, current_position[0], current_position[1], element_size, "path");
     current_position[0] -= x_dist * 0.5;
     current_position[1] -= y_dist;
-    grid[5] = new MasterHex(5, current_position[0], current_position[1], element_size, "path");
+    this.grid[5] = new MasterHex(this, 5, current_position[0], current_position[1], element_size, "path");
     current_position[0] += x_dist * 0.5;
     current_position[1] -= y_dist;
-    grid[6] = new MasterHex(6, current_position[0], current_position[1], element_size, "path");
+    this.grid[6] = new MasterHex(this, 6, current_position[0], current_position[1], element_size, "path");
     //First ring must be initialized
     for (iterator = 7; iterator < size; iterator += 1) {
         is_diagonal = false;
         position = -1;
-        radius = grid[0].grid_index.getNumberOfRings(iterator);
+        radius = this.grid[0].grid_index.getNumberOfRings(iterator);
         for (jterator = 0; jterator < 6; jterator += 1) {
-            if (grid[0].grid_index.getDiagonalElement(jterator, radius) === iterator) {
+            if (this.grid[0].grid_index.getDiagonalElement(jterator, radius) === iterator) {
                 is_diagonal = true;
                 position = jterator;
                 break;
@@ -252,13 +259,13 @@ function SimpleGrid(number_elements, spacing, element_size) {
         if (!is_diagonal) {
             for (jterator = 0; jterator < 6; jterator += 1) {
                 if (iterator === 5) {
-                    if (grid[0].grid_index.getDiagonalElement(jterator, radius) < iterator) {
+                    if (this.grid[0].grid_index.getDiagonalElement(jterator, radius) < iterator) {
                         position = jterator;
                         break;
                     }
                 } else {
-                    if ((grid[0].grid_index.getDiagonalElement(jterator, radius) < iterator)
-                            && (iterator < grid[0].grid_index.getDiagonalElement(jterator + 1, radius))) {
+                    if ((this.grid[0].grid_index.getDiagonalElement(jterator, radius) < iterator)
+                            && (iterator < this.grid[0].grid_index.getDiagonalElement(jterator + 1, radius))) {
                         position = jterator;
                         break;
                     }
@@ -288,9 +295,9 @@ function SimpleGrid(number_elements, spacing, element_size) {
             current_position[0] += x_dist * 0.5;
             current_position[1] -= y_dist;
         }
-        grid[iterator] = new MasterHex(iterator, current_position[0], current_position[1], element_size, "path");
+        this.grid[iterator] = new MasterHex(this, iterator, current_position[0], current_position[1], element_size, "path");
     }
-}
+};
 
 SimpleGrid.prototype.element = function () {
     //Store values from a given index
@@ -497,3 +504,39 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
         return d + this.ringDistance(he.hex_op.grid_index, le.hex_op.grid_index);
     }
 };
+
+SimpleGrid.prototype.aStar = function (a, b) {
+    //Returns the path between a and b using A*
+    "use strict";
+    var dist_s = [];
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+/**/
