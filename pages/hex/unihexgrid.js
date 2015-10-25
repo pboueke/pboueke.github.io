@@ -1,9 +1,10 @@
-/*global oCanvas, console */
+/*jslint sub:true*/
+/*global oCanvas, SortedArray, console*/
 
 /*
 * Unidimensional Hexagonal Grid
 * Author: Pedro H. Boueke <p h b o u e k e "at" p o l i . u f r j . b r>
-* Version: 1.01.24.10.15
+* Last update: 24.10.15
 *
 * This is how the hexagonal grid is represented:
 *
@@ -163,7 +164,7 @@ function SimpleGrid() {
     this.grid = [];
     this.hex_type = {"path": {"stdr.color" : "rgb(16,204,23)", "slct.color" : "rgb(255,80,45)", "hovr.color" : "rgb(109,255,156)",
                              "trac.color" : "rgb(255,102,0)", "path.color" : "rgb(204,102,16)", "trgt.color" : "rgb(255,80,45)",
-                             "traversability": 1}};
+                             "traversability": true, "weight" : 1}};
 }
 
 function MasterHex(sg, id, x_pos, y_pos, radius, type) {
@@ -211,7 +212,7 @@ function MasterHex(sg, id, x_pos, y_pos, radius, type) {
         canvas.redraw();
     });
     canvas.addChild(this.hexagon);
-};
+}
 
 SimpleGrid.prototype.createGrid = function (number_elements, spacing, element_size) {
     "use strict";
@@ -402,6 +403,11 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
  /* The heuristic used in A* for estimating the distance between two elements of the grid.
   * It uses a complete and unblocked hexagonal grid as reference. Parameters 'a' and 'b'
   * are indexes from Hex elements in  a SimpleGrid.
+  *
+  * The algorithm consists of decreasing both elements radius until the region distance between
+  * them is lesser or equal to 1 and then returning the vertical distance obtained from the radius
+  * reduction added with in-ring distance between the reduced elements. This implementation differs
+  * due to untested optimizations.
   */
     "use strict";
     var he = new this.element(),  //higher element
@@ -417,6 +423,9 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
         aux_angle,
         iterator;
     //exceptions
+    if (a === b) {
+        return 0;
+    }
     if (a === 0) {
         return he.hex_op.getNumberOfRings(b);
     }
@@ -442,8 +451,10 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
         aux_he_neighbors = he.hex_op.getNeighbors(he.hex_op.grid_index);
         for (iterator = 0; iterator < 6; iterator += 1) {
             if (he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]) < he.getRadius()) {
+                //converting index to degree
                 aux_angle = aux_he_neighbors[iterator] - he.hex_op.getDiagonalElement(0, he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]));
                 aux_angle = aux_angle * (60.0 / he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]));
+                //chooses the index that is closest to le
                 if (this.angleDelta(le.getAngle(), aux_angle) <= this.angleDelta(le.getAngle(), aux_he_angle)) {
                     aux_he_angle = aux_angle;
                     aux_he = aux_he_neighbors[iterator];
@@ -473,6 +484,7 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
         aux_he_angle = he.getAngle();
         aux_le_angle = le.getAngle();
         while (rd > 1) {
+            //radius reduction, as seen before
             aux_he_neighbors = he.hex_op.getNeighbors(he.hex_op.grid_index);
             for (iterator = 0; iterator < 6; iterator += 1) {
                 if (he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]) < he.getRadius()) {
@@ -497,7 +509,7 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
                 }
             }
             le.update(aux_le);
-            //both he and le changed to their neighbors colsest to each other
+            //both he and le changed to their neighbors closest to each other in the inferior ring
             d += 2;
             rd = this.regionDistance(he.getPosition(), le.getPosition(), he.getDiagonal(), le.getDiagonal());
         }
@@ -505,11 +517,110 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
     }
 };
 
-SimpleGrid.prototype.aStar = function (a, b) {
-    //Returns the path between a and b using A*
+SimpleGrid.prototype.compareArrays = function (arr, sarr) {
+    /* returns true if both arrays are equal.
+    *  (using external sorted-arrays.js)
+    *  arr and sarr are SortedArray objects
+    */
     "use strict";
-    var dist_s = [];
-}
+    var iterator;
+    if (arr.array.length !== sarr.array.length) {
+        return false;
+    }
+    for (iterator = 0; iterator < arr.array.length; iterator += 1) {
+        if (arr.array[iterator] !== sarr.array[iterator]) {
+            return false;
+        }
+    }
+    return true;
+
+};
+
+SimpleGrid.prototype.subtractArrays = function (ans, arr1, arr2) {
+    /* sets ans with arr1 - arr2
+    *  (using external sorted-arrays.js)
+    *  ans, arr1 and arr2 are SortedArray objects
+    */
+    "use strict";
+    var iterator;
+    ans.array = arr1.array;
+    for (iterator = 0; iterator < arr2.array.length; iterator += 1) {
+        ans.remove(arr2.array[iterator]);
+    }
+    return ans;
+
+};
+
+SimpleGrid.prototype.aStar = function (a, b) {
+    /*Returns the path between a and b using A*
+    * Requires external sorted-arrays.js
+    * a and b are indexes
+    */
+    "use strict";
+    var c,
+        hex_op = new Hex(1),
+        dist_s = [],
+        dist = [],
+        s = new SortedArray([]),
+        v = new SortedArray([]),
+        vms = new SortedArray([]), //aux (v - s)
+        aux_sd = Infinity,
+        aux_neighbors,
+        aux_break = true,
+        iterator,
+        jterator,
+        debug = 0;
+    for (iterator = 0; iterator < this.grid.length; iterator += 1) {
+        v.array.push(iterator);
+    }
+    for (iterator = 0; iterator < v.array.length; iterator += 1) {
+        dist[iterator] = dist_s[iterator] = Infinity;
+    }
+    dist_s[a] = 0;
+    dist[a] = this.distanceEstimation(a, b);
+    while (!this.compareArrays(v, s) && aux_break) {
+        //if (debug === 10) {
+        //    break;
+        //}
+        debug += 1;
+        //console.log("While...");
+        vms = this.subtractArrays(vms, v, s);
+        console.log("SEARCH", vms.search(7));
+        for (iterator = 0; iterator < vms.array.length; iterator += 1) {
+            /*tries to find the element c from vms that has the minimum value in the 'dist' vector
+            * it also only accpets elements that are traversable.
+            * Below (after &&): get's the MasterHex's type with index 'vms.array[iterator]' from SimpleGrid hex_type based on
+            * it's assigned type 'td' in order to find if it is traversable. We can only create paths on traversable nodes. */
+            //console.log(iterator, this.hex_type[this.grid[vms.array[iterator]].tp]["traversability"]);
+            if ((dist[vms.array[iterator]] <= aux_sd) && (this.hex_type[this.grid[vms.array[iterator]].tp]["traversability"])) {
+                console.log("1 IF");
+                aux_sd = dist[vms.array[iterator]];
+                c = vms.array[iterator];
+            } else {
+                console.log("1 ELSE");
+            }
+        }
+        console.log("c: ", c, "aux_sd: ", aux_sd);
+        if (c === b) {
+            console.log("C === B");
+            aux_break = false;
+            break;
+        }
+        console.log("AKIRA");
+        s.insert(c);
+        aux_neighbors = hex_op.getNeighbors(c);
+        for (jterator = 0; jterator < 6; jterator += 1) {
+            //console.log(jterator);
+            if (dist_s[aux_neighbors[jterator]] > (dist_s[c] + this.hex_type[this.grid[aux_neighbors[jterator]].tp]["weight"])) {
+                console.log("2 IF");
+                dist_s[aux_neighbors[jterator]] = dist_s[c] + this.hex_type[this.grid[aux_neighbors[jterator]].tp]["weight"];
+                dist[aux_neighbors[jterator]] = dist_s[aux_neighbors[jterator]] + this.distanceEstimation(aux_neighbors[jterator], b);
+                //console.log("dist_s", dist_s[c] + this.hex_type[this.grid[aux_neighbors[jterator]].tp]["weight"], "dist", dist_s[aux_neighbors[jterator]] + this.distanceEstimation(aux_neighbors[jterator], b));
+            }
+        }
+    }
+    return s;
+};
 
 
 

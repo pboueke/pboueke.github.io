@@ -1,6 +1,9 @@
 var s = new SimpleGrid();
 
 s.createGrid(121, 7, 30);
+
+console.log(s.aStar(7, 32));
+
 /*
 var a = 37;
 var b = 60;
