@@ -162,6 +162,7 @@ var canvas = oCanvas.create({
 function SimpleGrid() {
     "use strict";
     this.grid = [];
+    this.selected = 0;
     this.hex_type = {"path": {"stdr.color" : "rgb(16,204,23)", "slct.color" : "rgb(255,80,45)", "hovr.color" : "rgb(109,255,156)",
                              "trac.color" : "rgb(255,102,0)", "path.color" : "rgb(204,102,16)", "trgt.color" : "rgb(255,80,45)",
                              "traversability": true, "weight" : 1}};
@@ -178,7 +179,7 @@ function MasterHex(sg, id, x_pos, y_pos, radius, type) {
     */
     "use strict";
     var kterator,
-        current_neighbor = [],
+        current_selection = [],
         index = id;
     this.tp = type;
     this.grid_index = new Hex(id);
@@ -190,12 +191,12 @@ function MasterHex(sg, id, x_pos, y_pos, radius, type) {
         fill: sg.hex_type[type]["stdr.color"], //standard_color
         rotation: 90
     }).bind("mouseenter touchenter", function () {
-        current_neighbor = sg.grid[0].grid_index.getNeighbors(index);
+        current_selection = sg.grid[0].grid_index.getNeighbors(index);
         this.radius = radius * 1.07;
         this.fill = sg.hex_type[sg.grid[index].tp]["hovr.color"]; //hover_color;
         for (kterator = 0; kterator < 6; kterator += 1) {
             try {
-                sg.grid[current_neighbor[kterator]].hexagon.fill = sg.hex_type[sg.grid[current_neighbor[kterator]].tp]["trac.color"]; //trace_color
+                sg.grid[current_selection[kterator]].hexagon.fill = sg.hex_type[sg.grid[current_selection[kterator]].tp]["trac.color"]; //trace_color
             } catch (ignore) {
             }
         }
@@ -205,7 +206,7 @@ function MasterHex(sg, id, x_pos, y_pos, radius, type) {
         this.fill = sg.hex_type[sg.grid[index].tp]["stdr.color"];
         for (kterator = 0; kterator < 6; kterator += 1) {
             try {
-                sg.grid[current_neighbor[kterator]].hexagon.fill = sg.hex_type[sg.grid[current_neighbor[kterator]].tp]["stdr.color"]; //standard_color
+                sg.grid[current_selection[kterator]].hexagon.fill = sg.hex_type[sg.grid[current_selection[kterator]].tp]["stdr.color"]; //standard_color
             } catch (ignore) {
             }
         }
@@ -520,15 +521,15 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
 SimpleGrid.prototype.compareArrays = function (arr, sarr) {
     /* returns true if both arrays are equal.
     *  (using external sorted-arrays.js)
-    *  arr and sarr are SortedArray objects
+    *  arr is a SortedArray objects and sarr is an array
     */
     "use strict";
     var iterator;
-    if (arr.array.length !== sarr.array.length) {
+    if (arr.array.length !== sarr.length) {
         return false;
     }
     for (iterator = 0; iterator < arr.array.length; iterator += 1) {
-        if (arr.array[iterator] !== sarr.array[iterator]) {
+        if (arr.array[iterator] !== sarr[iterator]) {
             return false;
         }
     }
@@ -539,13 +540,13 @@ SimpleGrid.prototype.compareArrays = function (arr, sarr) {
 SimpleGrid.prototype.subtractArrays = function (ans, arr1, arr2) {
     /* sets ans with arr1 - arr2
     *  (using external sorted-arrays.js)
-    *  ans, arr1 and arr2 are SortedArray objects
+    *  ans and arr1 are SortedArray objects, arr2 is an array
     */
     "use strict";
     var iterator;
     ans.array = arr1.array;
-    for (iterator = 0; iterator < arr2.array.length; iterator += 1) {
-        ans.remove(arr2.array[iterator]);
+    for (iterator = 0; iterator < arr2.length; iterator += 1) {
+        ans.remove(arr2[iterator]);
     }
     return ans;
 
@@ -561,15 +562,14 @@ SimpleGrid.prototype.aStar = function (a, b) {
         hex_op = new Hex(1),
         dist_s = [],
         dist = [],
-        s = new SortedArray([]),
+        s = [],
         v = new SortedArray([]),
         vms = new SortedArray([]), //aux (v - s)
         aux_sd = Infinity,
         aux_neighbors,
         aux_break = true,
         iterator,
-        jterator,
-        debug = 0;
+        jterator;
     for (iterator = 0; iterator < this.grid.length; iterator += 1) {
         v.array.push(iterator);
     }
@@ -579,43 +579,31 @@ SimpleGrid.prototype.aStar = function (a, b) {
     dist_s[a] = 0;
     dist[a] = this.distanceEstimation(a, b);
     while (!this.compareArrays(v, s) && aux_break) {
-        //if (debug === 10) {
-        //    break;
-        //}
-        debug += 1;
-        //console.log("While...");
         vms = this.subtractArrays(vms, v, s);
-        console.log("SEARCH", vms.search(7));
         for (iterator = 0; iterator < vms.array.length; iterator += 1) {
             /*tries to find the element c from vms that has the minimum value in the 'dist' vector
             * it also only accpets elements that are traversable.
             * Below (after &&): get's the MasterHex's type with index 'vms.array[iterator]' from SimpleGrid hex_type based on
             * it's assigned type 'td' in order to find if it is traversable. We can only create paths on traversable nodes. */
-            //console.log(iterator, this.hex_type[this.grid[vms.array[iterator]].tp]["traversability"]);
             if ((dist[vms.array[iterator]] <= aux_sd) && (this.hex_type[this.grid[vms.array[iterator]].tp]["traversability"])) {
-                console.log("1 IF");
                 aux_sd = dist[vms.array[iterator]];
                 c = vms.array[iterator];
-            } else {
-                console.log("1 ELSE");
             }
         }
-        console.log("c: ", c, "aux_sd: ", aux_sd);
         if (c === b) {
-            console.log("C === B");
             aux_break = false;
             break;
         }
-        console.log("AKIRA");
-        s.insert(c);
+        s.push(c);
         aux_neighbors = hex_op.getNeighbors(c);
         for (jterator = 0; jterator < 6; jterator += 1) {
-            //console.log(jterator);
-            if (dist_s[aux_neighbors[jterator]] > (dist_s[c] + this.hex_type[this.grid[aux_neighbors[jterator]].tp]["weight"])) {
-                console.log("2 IF");
-                dist_s[aux_neighbors[jterator]] = dist_s[c] + this.hex_type[this.grid[aux_neighbors[jterator]].tp]["weight"];
-                dist[aux_neighbors[jterator]] = dist_s[aux_neighbors[jterator]] + this.distanceEstimation(aux_neighbors[jterator], b);
-                //console.log("dist_s", dist_s[c] + this.hex_type[this.grid[aux_neighbors[jterator]].tp]["weight"], "dist", dist_s[aux_neighbors[jterator]] + this.distanceEstimation(aux_neighbors[jterator], b));
+            try {
+                if (dist_s[aux_neighbors[jterator]] > (dist_s[c] + this.hex_type[this.grid[aux_neighbors[jterator]].tp]["weight"] - 1)) {
+                    dist_s[aux_neighbors[jterator]] = dist_s[c] + this.hex_type[this.grid[aux_neighbors[jterator]].tp]["weight"] - 1;
+                    dist[aux_neighbors[jterator]] = dist_s[aux_neighbors[jterator]] + this.distanceEstimation(aux_neighbors[jterator], b);
+                }
+            } catch (ignore) {
+                //console.log("IOR: ",aux_neighbors[jterator]);
             }
         }
     }
