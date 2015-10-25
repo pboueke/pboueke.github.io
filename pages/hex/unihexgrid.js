@@ -162,7 +162,7 @@ var canvas = oCanvas.create({
 function SimpleGrid() {
     "use strict";
     this.grid = [];
-    this.selected = 0;
+    this.selected_hex = 0;
     this.hex_type = {"path": {"stdr.color" : "rgb(16,204,23)", "slct.color" : "rgb(255,80,45)", "hovr.color" : "rgb(109,255,156)",
                              "trac.color" : "rgb(255,102,0)", "path.color" : "rgb(204,102,16)", "trgt.color" : "rgb(255,80,45)",
                              "traversability": true, "weight" : 1}};
@@ -183,6 +183,14 @@ function MasterHex(sg, id, x_pos, y_pos, radius, type) {
         index = id;
     this.tp = type;
     this.grid_index = new Hex(id);
+    this.txt = canvas.display.text({
+      	x: x_pos,
+      	y: y_pos,
+      	origin: { x: "center", y: "center" },
+      	font: "bold 15px sans-serif",
+      	text: index,
+      	fill: "#FFFFFF"
+    });
     this.hexagon = canvas.display.polygon({
         x: x_pos,
         y: y_pos,
@@ -191,28 +199,38 @@ function MasterHex(sg, id, x_pos, y_pos, radius, type) {
         fill: sg.hex_type[type]["stdr.color"], //standard_color
         rotation: 90
     }).bind("mouseenter touchenter", function () {
-        current_selection = sg.grid[0].grid_index.getNeighbors(index);
+        current_selection = sg.aStar(index, sg.selected_hex);
         this.radius = radius * 1.07;
         this.fill = sg.hex_type[sg.grid[index].tp]["hovr.color"]; //hover_color;
-        for (kterator = 0; kterator < 6; kterator += 1) {
+        for (kterator = 0; kterator < current_selection.length; kterator += 1) {
             try {
                 sg.grid[current_selection[kterator]].hexagon.fill = sg.hex_type[sg.grid[current_selection[kterator]].tp]["trac.color"]; //trace_color
             } catch (ignore) {
             }
         }
         canvas.redraw();
+    }).bind("click trap", function () {
+        sg.grid[sg.selected_hex].hexagon.fill = sg.hex_type[sg.grid[sg.selected_hex].tp]["stdr.color"];
+        sg.selected_hex = index;
+        this.fill = sg.hex_type[sg.grid[index].tp]["slct.color"];
+        canvas.redraw();
     }).bind("mouseleave touchleave", function () {
         this.radius = radius;
-        this.fill = sg.hex_type[sg.grid[index].tp]["stdr.color"];
-        for (kterator = 0; kterator < 6; kterator += 1) {
+        if (index !== sg.selected_hex) {
+            this.fill = sg.hex_type[sg.grid[index].tp]["stdr.color"];
+        }
+        for (kterator = 0; kterator < current_selection.length; kterator += 1) {
             try {
-                sg.grid[current_selection[kterator]].hexagon.fill = sg.hex_type[sg.grid[current_selection[kterator]].tp]["stdr.color"]; //standard_color
+                if (sg.grid[current_selection[kterator]].grid_index.getIndex() !== sg.selected_hex) {
+                    sg.grid[current_selection[kterator]].hexagon.fill = sg.hex_type[sg.grid[current_selection[kterator]].tp]["stdr.color"]; //standard_color
+                }
             } catch (ignore) {
             }
         }
         canvas.redraw();
     });
     canvas.addChild(this.hexagon);
+    canvas.addChild(this.txt);
 }
 
 SimpleGrid.prototype.createGrid = function (number_elements, spacing, element_size) {
@@ -229,6 +247,7 @@ SimpleGrid.prototype.createGrid = function (number_elements, spacing, element_si
     //Each hex (MasterHex) position is the result of incrementing the previous position
     //based on the region of the current hex.
     this.grid[0] = new MasterHex(this, 0, current_position[0], current_position[1], element_size, "path");
+    this.grid[0].fill = this.hex_type["slct.color"];
     current_position[0] += x_dist * 0.5;
     current_position[1] -= y_dist;
     this.grid[1] = new MasterHex(this, 1, current_position[0], current_position[1], element_size, "path");
@@ -299,6 +318,7 @@ SimpleGrid.prototype.createGrid = function (number_elements, spacing, element_si
         }
         this.grid[iterator] = new MasterHex(this, iterator, current_position[0], current_position[1], element_size, "path");
     }
+    canvas.redraw();
 };
 
 SimpleGrid.prototype.element = function () {
@@ -422,6 +442,7 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
         aux_he,
         aux_le,
         aux_angle,
+        aux_counter,
         iterator;
     //exceptions
     if (a === b) {
@@ -449,16 +470,18 @@ SimpleGrid.prototype.distanceEstimation = function (a, b) {
     //equalizes radius
     aux_he_angle = he.getAngle();
     while (he.getRadius() !== le.getRadius()) {
+        aux_counter = 0;
         aux_he_neighbors = he.hex_op.getNeighbors(he.hex_op.grid_index);
         for (iterator = 0; iterator < 6; iterator += 1) {
             if (he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]) < he.getRadius()) {
                 //converting index to degree
                 aux_angle = aux_he_neighbors[iterator] - he.hex_op.getDiagonalElement(0, he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]));
                 aux_angle = aux_angle * (60.0 / he.hex_op.getNumberOfRings(aux_he_neighbors[iterator]));
-                //chooses the index that is closest to le
-                if (this.angleDelta(le.getAngle(), aux_angle) <= this.angleDelta(le.getAngle(), aux_he_angle)) {
+                if (this.angleDelta(le.getAngle(), aux_angle) <= this.angleDelta(le.getAngle(), aux_he_angle) || (aux_counter === 1)) {
                     aux_he_angle = aux_angle;
                     aux_he = aux_he_neighbors[iterator];
+                } else {
+                    aux_counter += 1;
                 }
             }
         }
@@ -569,7 +592,8 @@ SimpleGrid.prototype.aStar = function (a, b) {
         aux_neighbors,
         aux_break = true,
         iterator,
-        jterator;
+        jterator,
+        debug = 0;
     for (iterator = 0; iterator < this.grid.length; iterator += 1) {
         v.array.push(iterator);
     }
@@ -579,6 +603,10 @@ SimpleGrid.prototype.aStar = function (a, b) {
     dist_s[a] = 0;
     dist[a] = this.distanceEstimation(a, b);
     while (!this.compareArrays(v, s) && aux_break) {
+        if (debug === 10) {
+            break;
+        }
+        debug += 1;
         vms = this.subtractArrays(vms, v, s);
         for (iterator = 0; iterator < vms.array.length; iterator += 1) {
             /*tries to find the element c from vms that has the minimum value in the 'dist' vector
@@ -603,7 +631,6 @@ SimpleGrid.prototype.aStar = function (a, b) {
                     dist[aux_neighbors[jterator]] = dist_s[aux_neighbors[jterator]] + this.distanceEstimation(aux_neighbors[jterator], b);
                 }
             } catch (ignore) {
-                //console.log("IOR: ",aux_neighbors[jterator]);
             }
         }
     }

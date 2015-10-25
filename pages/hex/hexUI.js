@@ -1,8 +1,9 @@
 var s = new SimpleGrid();
 
-s.createGrid(121, 7, 30);
+s.createGrid(127, 7, 20);
 
-console.log(s.aStar(90, 45));
+console.log(s.distanceEstimation(12, 20));
+//console.log(s.aStar(65, 20));
 
 /*
 var a = 37;
