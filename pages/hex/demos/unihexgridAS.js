@@ -643,7 +643,7 @@ SimpleGrid.prototype.aStar = function (start, goal) {
         for (iterator = 0; iterator < 6; iterator += 1) {
             try {
                 next = neighbors[iterator];
-                new_cost = cost_so_far[current] + (this.hex_type[this.grid[next].tp]["weight"] - 1);
+                new_cost = cost_so_far[current] + (this.hex_type[this.grid[next].tp]["weight"]);
                 if ((!(aux_keys.indexOf(next.toString()) !== -1) || (new_cost < cost_so_far[next])) && (this.hex_type[this.grid[next].tp]["traversability"])) {
                     cost_so_far[next] = new_cost;
                     priority = new_cost + this.distanceEstimation(goal, next);
