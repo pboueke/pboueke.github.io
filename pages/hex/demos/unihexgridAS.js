@@ -1,10 +1,10 @@
 /*jslint sub:true*/
-/*global oCanvas, SortedArray, console*/
+/*global oCanvas, SortedArray, PriorityQueue, console*/
 
 /*
 * Unidimensional Hexagonal Grid
 * Author: Pedro H. Boueke <p h b o u e k e "at" p o l i . u f r j . b r>
-* Last update: 24.10.15
+* Last update: 27.10.15
 *
 * This is how the hexagonal grid is represented:
 *
@@ -165,7 +165,13 @@ function SimpleGrid() {
     this.selected_hex = 0;
     this.hex_type = {"path": {"stdr.color" : "rgb(16,204,23)", "slct.color" : "rgb(255,80,45)", "hovr.color" : "rgb(109,255,156)",
                              "trac.color" : "rgb(255,102,0)", "path.color" : "rgb(204,102,16)", "trgt.color" : "rgb(255,80,45)",
-                             "traversability": true, "weight" : 1}};
+                             "traversability": true, "weight" : 1},
+                     "mount": {"stdr.color" : "rgb(153, 102, 51)", "slct.color" : "rgb(255,80,45)", "hovr.color" : "rgb(109,255,156)",
+                            "trac.color" : "rgb(255,102,0)", "path.color" : "rgb(204,102,16)", "trgt.color" : "rgb(255,80,45)",
+                            "traversability": false, "weight" : 1},
+                     "river": {"stdr.color" : "rgb(51, 51, 204)", "slct.color" : "rgb(255,80,45)", "hovr.color" : "rgb(109,255,156)",
+                              "trac.color" : "rgb(255,102,0)", "path.color" : "rgb(204,102,16)", "trgt.color" : "rgb(255,80,45)",
+                              "traversability": true, "weight" : 3}};
 }
 
 function MasterHex(sg, id, x_pos, y_pos, radius, type) {
@@ -184,12 +190,12 @@ function MasterHex(sg, id, x_pos, y_pos, radius, type) {
     this.tp = type;
     this.grid_index = new Hex(id);
     this.txt = canvas.display.text({
-      	x: x_pos,
-      	y: y_pos,
-      	origin: { x: "center", y: "center" },
-      	font: "bold 15px sans-serif",
-      	text: index,
-      	fill: "#FFFFFF"
+        x: x_pos,
+        y: y_pos,
+        origin: { x: "center", y: "center" },
+        font: "bold" + (0.75 * radius).toString() + "px sans-serif",
+        text: index,
+        fill: "#FFFFFF"
     });
     this.hexagon = canvas.display.polygon({
         x: x_pos,
@@ -199,13 +205,16 @@ function MasterHex(sg, id, x_pos, y_pos, radius, type) {
         fill: sg.hex_type[type]["stdr.color"], //standard_color
         rotation: 90
     }).bind("mouseenter touchenter", function () {
-        current_selection = sg.aStar(index, sg.selected_hex);
-        this.radius = radius * 1.07;
-        this.fill = sg.hex_type[sg.grid[index].tp]["hovr.color"]; //hover_color;
-        for (kterator = 0; kterator < current_selection.length; kterator += 1) {
-            try {
-                sg.grid[current_selection[kterator]].hexagon.fill = sg.hex_type[sg.grid[current_selection[kterator]].tp]["trac.color"]; //trace_color
-            } catch (ignore) {
+        if (sg.hex_type[sg.grid[index].tp]["traversability"]) {
+            current_selection = sg.aStar(sg.selected_hex, index);
+            console.log(current_selection);
+            this.radius = radius * 1.07;
+            this.fill = sg.hex_type[sg.grid[index].tp]["hovr.color"]; //hover_color;
+            for (kterator = 0; kterator < current_selection.length; kterator += 1) {
+                try {
+                    sg.grid[current_selection[kterator]].hexagon.fill = sg.hex_type[sg.grid[current_selection[kterator]].tp]["trac.color"]; //trace_color
+                } catch (ignore) {
+                }
             }
         }
         canvas.redraw();
@@ -228,10 +237,28 @@ function MasterHex(sg, id, x_pos, y_pos, radius, type) {
             }
         }
         canvas.redraw();
+    }).bind("dblclick", function () {
+        if (sg.grid[index].tp === "path") {
+            sg.grid[index].tp = "mount";
+        } else if (sg.grid[index].tp === "mount") {
+            sg.grid[index].tp = "river";
+        } else if (sg.grid[index].tp === "river") {
+            sg.grid[index].tp = "path";
+        }
     });
     canvas.addChild(this.hexagon);
     canvas.addChild(this.txt);
 }
+
+SimpleGrid.prototype.changeType = function (arr, type) {
+    "use strict";
+    var iterator;
+    for (iterator = 0; iterator < arr.length; iterator += 1) {
+        this.grid[arr[iterator]].tp = type;
+        this.grid[arr[iterator]].hexagon.fill = this.hex_type[type]["stdr.color"];
+    }
+    canvas.redraw();
+};
 
 SimpleGrid.prototype.createGrid = function (number_elements, spacing, element_size) {
     "use strict";
@@ -575,7 +602,70 @@ SimpleGrid.prototype.subtractArrays = function (ans, arr1, arr2) {
 
 };
 
-SimpleGrid.prototype.aStar = function (a, b) {
+SimpleGrid.prototype.aStar = function (start, goal) {
+    /*Returns the path between a and b using A*
+    * Requires external sorted-arrays.js
+    * a and b are indexes
+    * As seen in http://www.redblobgames.com/pathfinding/a-star/introduction.html
+    */
+    "use strict";
+    var hex_op = new Hex(1),
+        frontier = new PriorityQueue(function (el1, el2) {
+            return el2.priority - el1.priority;
+        }),
+        came_from = {},
+        cost_so_far = {},
+        ans = [],
+        current,
+        neighbors,
+        new_cost,
+        next,
+        priority,
+        aux_keys = [],
+        iterator,
+        debug = 0;
+    frontier.enq({priority : 0, index : start});
+    came_from[start] = 0;
+    cost_so_far[start] = 0;
+    while (!frontier.isEmpty()) {
+        if (debug === 100) {
+            break;
+        }
+        debug += 1;
+        //console.log(frontier);
+        current = frontier.deq().index;
+        if (current === goal) {
+            break;
+        }
+        neighbors = hex_op.getNeighbors(current);
+        aux_keys = Object.keys(cost_so_far);
+        //console.log("KEYS>", aux_keys);
+        for (iterator = 0; iterator < 6; iterator += 1) {
+            try {
+                next = neighbors[iterator];
+                new_cost = cost_so_far[current] + (this.hex_type[this.grid[next].tp]["weight"] - 1);
+                if ((!(aux_keys.indexOf(next.toString()) !== -1) || (new_cost < cost_so_far[next])) && (this.hex_type[this.grid[next].tp]["traversability"])) {
+                    cost_so_far[next] = new_cost;
+                    priority = new_cost + this.distanceEstimation(goal, next);
+                    frontier.enq({priority : priority, index : next});
+                    came_from[next] = current;
+
+                }
+            } catch (ignore) {
+            }
+        }
+    }
+    next = goal;
+    iterator = 0;
+    while (next !== start) {
+        ans[iterator] = next;
+        next = came_from[next];
+        iterator += 1;
+    }
+    return ans;
+};
+
+SimpleGrid.prototype.aStar_deprec = function (a, b) {
     /*Returns the path between a and b using A*
     * Requires external sorted-arrays.js
     * a and b are indexes
@@ -583,8 +673,8 @@ SimpleGrid.prototype.aStar = function (a, b) {
     "use strict";
     var c,
         hex_op = new Hex(1),
-        dist_s = [],
-        dist = [],
+        dist_s = [], //came from
+        dist = [],   //cost so far
         s = [],
         v = new SortedArray([]),
         vms = new SortedArray([]), //aux (v - s)
@@ -603,17 +693,20 @@ SimpleGrid.prototype.aStar = function (a, b) {
     dist_s[a] = 0;
     dist[a] = this.distanceEstimation(a, b);
     while (!this.compareArrays(v, s) && aux_break) {
-        if (debug === 10) {
+        if (debug === 20) {
             break;
         }
         debug += 1;
+        aux_sd = Infinity;
         vms = this.subtractArrays(vms, v, s);
+        //console.log(s);
+        //console.log(vms.array);
         for (iterator = 0; iterator < vms.array.length; iterator += 1) {
             /*tries to find the element c from vms that has the minimum value in the 'dist' vector
             * it also only accpets elements that are traversable.
             * Below (after &&): get's the MasterHex's type with index 'vms.array[iterator]' from SimpleGrid hex_type based on
             * it's assigned type 'td' in order to find if it is traversable. We can only create paths on traversable nodes. */
-            if ((dist[vms.array[iterator]] <= aux_sd) && (this.hex_type[this.grid[vms.array[iterator]].tp]["traversability"])) {
+            if ((dist[vms.array[iterator]] < aux_sd) && (this.hex_type[this.grid[vms.array[iterator]].tp]["traversability"])) {
                 aux_sd = dist[vms.array[iterator]];
                 c = vms.array[iterator];
             }

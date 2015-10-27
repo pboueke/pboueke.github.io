@@ -13,24 +13,16 @@
     <h2> (unihexgrid by <a href="https://github.com/pboueke">pboueke</a>) </h2>
     <h2> Path finding with A* </h2>
     <canvas id="canvas" width="1000px" height="500px"></canvas>
-    <h3> Click to change origin, hover to set target. </h3>
+    <h3> Click to change origin, hover to set target </h3>
+    <h3>and double click to change hex type.</h3>
+    <h3> unihexgrid &copy; 2015 pboueke
   </center>
 
-    <script src="ocanvas-2.8.1.min.js"></script>
+    <script src="../ocanvas-2.8.1.min.js"></script>
+    <script src="../priorityqueuejs/pq.js"></script>
     <script src="../sorted-array/sorted-array.js"></script>
     <script src="unihexgridAS.js"></script>
     <script src="hexUIAS.js"></script>
-
-    <script>
-      (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
-      (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
-      m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
-      })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
-
-      ga('create', 'UA-63582989-2', 'auto');
-      ga('send', 'pageview');
-
-    </script>
 
     <h1 id='test'></h1>
 

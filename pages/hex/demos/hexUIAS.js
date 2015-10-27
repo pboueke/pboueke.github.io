@@ -1,23 +1,8 @@
 var s = new SimpleGrid();
 
 s.createGrid(127, 7, 20);
+var mounts = [57,58,59,85,84,83,36,7,1,54,40,22,9,21,39,64,63,3,4,12,13,29,28,50,78,77,51,49,111,112,110];
+var rivers = [17,18,6,101,70,45,72,105,100,69,44,25,46,73,106,13,125,126,91,61,90,89,124,123,88];
 
-console.log(s.distanceEstimation(12, 20));
-//console.log(s.aStar(65, 20));
-
-/*
-var a = 37;
-var b = 60;
-var c = 23;
-
-for (var i = a; a <= b; a += 1){
-    console.log(a, c)
-    console.log(s.distanceEstimation(a,c));
-    console.log("<=============>")
-  }
-
-var associativeArray = {1:["f", 10000, 2.0], "second": "s"};
-associativeArray["three"] = "Third";
-
-console.log(associativeArray[1][0]);
-*/
+s.changeType(mounts, "mount");
+s.changeType(rivers, "river");
