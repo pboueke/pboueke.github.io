@@ -1,4 +1,5 @@
 /*global THREE, scene, window, document, requestAnimationFrame, console*/
+/*jslint continue:true*/
 var scene = new THREE.Scene();
 var camera = new THREE.PerspectiveCamera(120, window.innerWidth / window.innerHeight, 0.1, 1000);
 var renderer = new THREE.WebGLRenderer({ alpha: true });
@@ -34,6 +35,8 @@ function Lines() {
     "use strict";
     this.points = [];
     this.intersections = [];
+    this.lines = [];
+    this.spheres = [];
 }
 
 Lines.prototype.getLineParameters = function (arr) {
@@ -66,12 +69,52 @@ Lines.prototype.addLine = function (arr) {
     this.points.push(arr);
 };
 
+Lines.prototype.parseLineText = function (string) {
+    //string format: "(line1), ..., (lineN)" = "[(x11, y11), (x12, y12)], ..., [(xN1, yN1), (xN2, yN2)]"
+    "use strict";
+    var iterator,
+        points = ["", "", "", ""], //x1, y1, x2, y2
+        next,
+        counter = 0;
+    this.points = [];
+    for (iterator = 0; iterator < string.length; iterator += 1) {
+        if (string[iterator] === " ") {
+            continue;
+        }
+        if (string[iterator] === ",") {
+            next = true;
+            counter += 1;
+            continue;
+        }
+        if (string[iterator] === "(") {
+            next = true;
+            continue;
+        }
+        if (string[iterator] === ")") {
+            next = false;
+            continue;
+        }
+        if (string[iterator] === ";") {
+            this.addLine([[parseInt(points[0], 10), parseInt(points[1], 10)], [parseInt(points[2], 10), parseInt(points[3], 10)]]);
+            points = ["", "", "", ""];
+            counter = 0;
+            continue;
+        }
+        if (next) {
+            points[counter] = points[counter].concat(String(string[iterator]));
+        }
+    }
+};
+
 Lines.prototype.drawLines = function () {
     "use strict";
     var material = [],
         geometry = [],
-        line = [],
         iterator;
+    for (iterator = 0; iterator < this.lines.length; iterator += 1) {
+        scene.remove(this.lines[iterator]);
+    }
+    this.lines = [];
     for (iterator = 0; iterator < this.points.length; iterator += 1) {
         material[iterator] = new THREE.LineBasicMaterial({
             color: random_color()
@@ -81,8 +124,8 @@ Lines.prototype.drawLines = function () {
             new THREE.Vector3(this.points[iterator][0][0], this.points[iterator][0][1], 0),
             new THREE.Vector3(this.points[iterator][1][0], this.points[iterator][1][1], 0)
         );
-        line[iterator] = new THREE.Line(geometry[iterator], material[iterator]);
-        scene.add(line[iterator]);
+        this.lines[iterator] = new THREE.Line(geometry[iterator], material[iterator]);
+        scene.add(this.lines[iterator]);
     }
 };
 
@@ -90,27 +133,45 @@ Lines.prototype.drawIntersections = function () {
     "use strict";
     var material = [],
         geometry = [],
-        sphere = [],
         position = [],
+        intersec,
+        maxx,
+        minx,
+        maxy,
+        miny,
         radius = 5,
         segments = 16,
         rings = 16,
-        iterator = 1, //parses columns
+        iterator = 0, //parses columns
         jterator = 0, //parses rows
         kterator = 2, //reset iterator to new value
         current = 0;
+    for (iterator = 0; iterator < this.spheres.length; iterator += 1) {
+        scene.remove(this.spheres[iterator]);
+    }
+    this.spheres = [];
+    iterator = 1;
     while (jterator < this.points.length - 1) {
-        geometry[current] = new THREE.SphereGeometry(radius, segments, rings);
-        material[current] = new THREE.MeshBasicMaterial({
-            color: random_color()
-        });
-        sphere[current] = new THREE.Mesh(geometry[current], material[current]);
-        position[current] = this.intersection([this.points[jterator], this.points[iterator]]);
-        this.intersections[current] = position[current];
-        sphere[current].position.x = position[current][0];
-        sphere[current].position.y = position[current][1];
-        sphere[current].position.z = 0;
-        scene.add(sphere[current]);
+        intersec = this.intersection([this.points[jterator], this.points[iterator]]);
+        maxx = Math.max(this.points[jterator][0][0], this.points[iterator][1][0]);
+        minx = Math.min(this.points[jterator][0][0], this.points[iterator][1][0]);
+        maxy = Math.max(this.points[jterator][0][1], this.points[iterator][1][1]);
+        miny = Math.min(this.points[jterator][0][1], this.points[iterator][1][1]);
+        if ((intersec[0] < maxx && intersec[0] > minx) || (intersec[1] < maxy && intersec[1] > miny)) {
+            geometry[current] = new THREE.SphereGeometry(radius, segments, rings);
+            material[current] = new THREE.MeshBasicMaterial({
+                color: random_color(),
+                transparent: true,
+                opacity: 0.5
+            });
+            this.spheres[current] = new THREE.Mesh(geometry[current], material[current]);
+            position[current] = intersec;
+            this.intersections[current] = position[current];
+            this.spheres[current].position.x = position[current][0];
+            this.spheres[current].position.y = position[current][1];
+            this.spheres[current].position.z = 0;
+            scene.add(this.spheres[current]);
+        }
         if (iterator === this.points.length - 1) {
             iterator = kterator;
             jterator += 1;
@@ -136,25 +197,16 @@ Lines.prototype.centerPosition = function () {
     ans[0] = xm / iterator;
     ans[1] = ym / iterator;
     return ans;
-
 };
 
-
-var L = new Lines();
-L.addLine([[100, 100], [200, 200]]);
-L.addLine([[100, 200], [200, 100]]);
-L.addLine([[50, 150], [400, 50]]);
-L.drawLines();
-L.drawIntersections();
-var cpos = L.centerPosition();
-camera.position.x = cpos[0];
-camera.position.y = cpos[1];
-camera.position.z = 100;
-console.log(new THREE.Vector3(cpos[0], cpos[1], 0));
-controls.target = new THREE.Vector3(cpos[0], cpos[1], 0);
-
-camera.rotation.order = 'YXZ';
-
+Lines.prototype.update = function (z) {
+    "use strict";
+    this.drawLines();
+    this.drawIntersections();
+    var cpos = this.centerPosition();
+    camera.position.z = z;
+    controls.target = new THREE.Vector3(cpos[0], cpos[1], 0);
+};
 
 var render = function () {
     "use strict";
