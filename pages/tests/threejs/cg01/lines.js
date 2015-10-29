@@ -135,10 +135,14 @@ Lines.prototype.drawIntersections = function () {
         geometry = [],
         position = [],
         intersec,
-        maxx,
-        minx,
-        maxy,
-        miny,
+        maxx1,
+        minx1,
+        maxy1,
+        miny1,
+        maxx2,
+        minx2,
+        maxy2,
+        miny2,
         radius = 5,
         segments = 16,
         rings = 16,
@@ -153,11 +157,16 @@ Lines.prototype.drawIntersections = function () {
     iterator = 1;
     while (jterator < this.points.length - 1) {
         intersec = this.intersection([this.points[jterator], this.points[iterator]]);
-        maxx = Math.max(this.points[jterator][0][0], this.points[iterator][1][0]);
-        minx = Math.min(this.points[jterator][0][0], this.points[iterator][1][0]);
-        maxy = Math.max(this.points[jterator][0][1], this.points[iterator][1][1]);
-        miny = Math.min(this.points[jterator][0][1], this.points[iterator][1][1]);
-        if ((intersec[0] < maxx && intersec[0] > minx) || (intersec[1] < maxy && intersec[1] > miny)) {
+        maxx1 = Math.max(this.points[jterator][0][0], this.points[jterator][1][0]);
+        minx1 = Math.min(this.points[jterator][0][0], this.points[jterator][1][0]);
+        maxy1 = Math.max(this.points[jterator][0][1], this.points[jterator][1][1]);
+        miny1 = Math.min(this.points[jterator][0][1], this.points[jterator][1][1]);
+        maxx2 = Math.max(this.points[iterator][0][0], this.points[iterator][1][0]);
+        minx2 = Math.min(this.points[iterator][0][0], this.points[iterator][1][0]);
+        maxy2 = Math.max(this.points[iterator][0][1], this.points[iterator][1][1]);
+        miny2 = Math.min(this.points[iterator][0][1], this.points[iterator][1][1]);
+        if (((intersec[0] < maxx1 && intersec[0] > minx1) || (intersec[1] < maxy1 && intersec[1] > miny1)) &&
+                ((intersec[0] < maxx2 && intersec[0] > minx2) || (intersec[1] < maxy2 && intersec[1] > miny2))) {
             geometry[current] = new THREE.SphereGeometry(radius, segments, rings);
             material[current] = new THREE.MeshBasicMaterial({
                 color: random_color(),
@@ -171,6 +180,7 @@ Lines.prototype.drawIntersections = function () {
             this.spheres[current].position.y = position[current][1];
             this.spheres[current].position.z = 0;
             scene.add(this.spheres[current]);
+            current += 1;
         }
         if (iterator === this.points.length - 1) {
             iterator = kterator;
@@ -179,7 +189,6 @@ Lines.prototype.drawIntersections = function () {
         } else {
             iterator += 1;
         }
-        current += 1;
     }
 };
 
