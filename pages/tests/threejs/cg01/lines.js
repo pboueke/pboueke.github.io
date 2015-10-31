@@ -1,10 +1,20 @@
+/*
+Copyright (c) 2015 Pedro Holllanda Boueke {p h b o u e k e 'at' p o l i . u f r j . b r}
+
+Permission is hereby granted, free of charge, to any person obtaining a copy of this software and associated documentation files (the "Software"), to deal in the Software without restriction, including without limitation the rights to use, copy, modify, merge, publish, distribute, sublicense, and/or sell copies of the Software, and to permit persons to whom the Software is furnished to do so, subject to the following conditions:
+
+The above copyright notice and this permission notice shall be included in all copies or substantial portions of the Software.
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE
+*/
+
 //jslint config
 /*global THREE, scene, window, document, requestAnimationFrame, console*/
 /*jslint continue:true white:true, sloppy:true, browser:true*/
 
 //global
-var zdistance = 100;
-var viewSize = 300;
+var zdistance = 100;  //distance between camera and XY plane
+var viewSize = 300;   //orthogonal camera view size
 var aspectRatio = window.innerWidth / window.innerHeight;
 var scene = new THREE.Scene();
 var camera = new THREE.OrthographicCamera(-aspectRatio * viewSize / 2, aspectRatio * viewSize / 2, 0, viewSize);
@@ -27,21 +37,21 @@ renderer.sortObjects = false;
 document.body.appendChild(renderer.domElement);
 
 var random_color = function () {
+    //returns random color in hex code
     "use strict";
-    //Random Integer to hex color code
     return '#' + Math.floor(Math.random() * 16777215).toString(16);
 };
 
 function Lines() {
     //main class that store and operate the lines
     "use strict";
-    this.points = [];           //two points per line
-    this.intersections = [];    //intersection positions
-    this.lines = [];            //threejs line objects
-    this.handles = [];          //threejs line objects
-    this.spheres = [];          //threejs line objects
-    this.line_colors = [];
-    this.intersection_colors = [];
+    this.points = [];           //two points per line    [[[x1,y1],[x2,y2]]]
+    this.intersections = [];    //intersection positions [[x,y]]
+    this.lines = [];            //threejs line objects   [line]
+    this.handles = [];          //threejs line objects   [[handle0, handle1]]
+    this.spheres = [];          //threejs line objects   [sphere]
+    this.line_colors = [];                           //  [hex]
+    this.intersection_colors = [];                   //  [hex]
 }
 
 Lines.prototype.getLineParameters = function (arr) {
@@ -59,6 +69,7 @@ Lines.prototype.getLineParameters = function (arr) {
 Lines.prototype.intersection = function (arr) {
     //arr = [[[x1, y1], [x2, y2]], [[x1, y1], [x2, y2]]]
     //       [      line1       ], [       line2      ]
+    //Returns the point where both lines meet (including infinity).
     "use strict";
     var l1 = [],
         l2 = [],
@@ -115,6 +126,7 @@ Lines.prototype.parseLineText = function (string) {
 };
 
 Lines.prototype.getLineText = function () {
+    //return a string that represents the points array
     "use strict";
     var iterator,
         string = "";
@@ -143,6 +155,7 @@ Lines.prototype.drawLines = function () {
         handle_segments = 1,
         handle_rings = 1,
         iterator;
+    //only generate colors once
     if (this.line_colors.length === 0) {
         for (iterator = 0; iterator < this.points.length; iterator += 1) {
             this.line_colors[iterator] = random_color();
@@ -167,6 +180,7 @@ Lines.prototype.drawLines = function () {
     }
     //add lines to scene
     for (iterator = 0; iterator < this.points.length; iterator += 1) {
+        //creating line
         material[iterator] = new THREE.LineBasicMaterial({
             color: this.line_colors[iterator]
         });
@@ -177,6 +191,7 @@ Lines.prototype.drawLines = function () {
         );
         this.lines[iterator] = new THREE.Line(geometry[iterator], material[iterator]);
         this.lines[iterator].name = "line".concat(iterator.toString());
+        //creating handles
         handle_geometry[iterator] = new THREE.SphereGeometry(handle_radius, handle_segments, handle_rings);
         handle_material[iterator] = new THREE.MeshBasicMaterial({
             color: this.line_colors[iterator]
@@ -192,6 +207,7 @@ Lines.prototype.drawLines = function () {
         this.handles[iterator][1].position.y = this.points[iterator][1][1];
         this.handles[iterator][1].position.z = 5;
         this.handles[iterator][1].name = "handle1line".concat(iterator.toString());
+        //adding
         scene.add(this.lines[iterator]);
         scene.add(this.handles[iterator][0]);
         scene.add(this.handles[iterator][1]);
@@ -225,8 +241,8 @@ Lines.prototype.drawIntersections = function () {
     //iterator, jterator and kterator are used to create a combination that iterates
     //the current index trought every existing intersection
     while (jterator < this.points.length - 1) {
+        //generate colors only once
         if (this.intersection_colors[jterator] in window) {
-            //assign color if it did not exist
             this.intersection_colors[jterator] = random_color();
         }
         intersec = this.intersection([this.points[jterator], this.points[iterator]]);
@@ -238,8 +254,10 @@ Lines.prototype.drawIntersections = function () {
         minx2 = Math.min(this.points[iterator][0][0], this.points[iterator][1][0]);
         maxy2 = Math.max(this.points[iterator][0][1], this.points[iterator][1][1]);
         miny2 = Math.min(this.points[iterator][0][1], this.points[iterator][1][1]);
+        //if the current intersect belong to both lines segments and line equations
         if (((intersec[0] < maxx1 && intersec[0] > minx1) || (intersec[1] < maxy1 && intersec[1] > miny1)) &&
                 ((intersec[0] < maxx2 && intersec[0] > minx2) || (intersec[1] < maxy2 && intersec[1] > miny2))) {
+            //creating intersection sphere
             geometry[current] = new THREE.SphereGeometry(radius, segments, rings);
             material[current] = new THREE.MeshBasicMaterial({
                 color: this.intersection_colors[jterator],
@@ -287,58 +305,68 @@ Lines.prototype.update = function (z) {
     "use strict";
     var cpos,
         iterator;
+    //reset colors
     for (iterator = 0; iterator < this.points.length; iterator += 1) {
         this.line_colors[iterator] = random_color();
     }
+    for (iterator = 0; iterator < this.intersections.length; iterator += 1) {
+        this.intersection_colors[iterator] = random_color();
+    }
+    //redraw
     this.drawLines();
     this.drawIntersections();
+    //centers camera
     cpos = this.centerPosition();
     camera.position.x = cpos[0];
     camera.position.y = cpos[1] - viewSize / 2;
     camera.position.z = z;
-    //controls.target = new THREE.Vector3(cpos[0], cpos[1], 0);
 };
 
 Lines.prototype.simpleUpdate = function () {
-    //update scene with new parameters
+    //update scene with new parameters while handles are being manipulated
     "use strict";
     this.drawLines();
     this.drawIntersections();
-    //controls.target = new THREE.Vector3(cpos[0], cpos[1], 0);
 };
 
 //mouse and window interaction
 var start = function (lines) {
+    //adds event listeners and update document values
     'use strict';
     lines.parseLineText(document.getElementById("intxt").value);
     lines.update(zdistance);
 
     document.getElementById("gotxt").addEventListener("click", function () {
+        //when button Set is clicked
         lines.parseLineText(document.getElementById("intxt").value);
         lines.update(zdistance);
     });
 
     document.getElementById("gettxt").addEventListener("click", function () {
+        //when button set Get is clicked
         document.getElementById("intxt").value = lines.getLineText();
     });
 
     document.getElementById("intxt").addEventListener("change", function () {
+        //when text is changed
         lines.parseLineText(document.getElementById("intxt").value);
         lines.update(zdistance);
     });
 
     document.addEventListener('mousedown', function () {
+        //change global variables for object selection
         PRESSING = true;
         INTERSECTED = "";
     });
 
     document.addEventListener('mouseup', function () {
+        //change global variables for object selection
         PRESSING = false;
         PRESSABLE = false;
     });
 
     document.addEventListener('mousemove', function (event) {
-        //updates global mouse variable
+        //updates global mouse variable and, if needes, updates the selected handle position
         var aux_line,
             aux_handle,
             vector = new THREE.Vector3();
@@ -353,6 +381,7 @@ var start = function (lines) {
         //unprojecting the mouse position on the camera like this will only work with orthogonal cameras
         vector.unproject(camera);
         if (PRESSABLE && PRESSING) {
+            //the object name store in specific positions it's indexes
             aux_line = parseInt(INTERSECTED.substring(11, 12), 10);
             aux_handle = parseInt(INTERSECTED.substring(6, 7), 10);
             try{
@@ -373,11 +402,13 @@ var start = function (lines) {
 };
 
 var render = function () {
+    //render scene with specified changes
     "use strict";
     var intersects,
         aux_object,
         aux_name = "";
     requestAnimationFrame(render);
+    //intersect/selected objects are those intersected by the ray between the mouse projection and the camera
     raycaster.setFromCamera(mouse, camera);
     intersects = raycaster.intersectObjects(scene.children);
     if (INTERSECTED.substring(0, 6) === 'handle') {
@@ -387,6 +418,7 @@ var render = function () {
     if (intersects.length > 0) {
         aux_name = intersects[0].object.name;
         if (aux_name.substring(0, 6) === 'handle') {
+            //if it's a handle, update global values
             PRESSABLE = true;
             INTERSECTED = aux_name;
             INTERSECTED_COLOR = intersects[0].object.material.color.getHex();
@@ -397,19 +429,3 @@ var render = function () {
 };
 
 render();
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//
