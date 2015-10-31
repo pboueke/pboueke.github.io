@@ -31,6 +31,16 @@ canvas {
   background-color: #000000;
   font-size:0.9em;
   color:#ffffff;
-  width:40px; height:50px;
+  width:40px; height:25px;
+  font-family: tahoma, sans-serif;
+}
+
+#gettxt {
+  position: absolute;
+  margin-top: 25px;
+  background-color: #000000;
+  font-size:0.9em;
+  color:#ffffff;
+  width:40px; height:25px;
   font-family: tahoma, sans-serif;
 }

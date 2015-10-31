@@ -114,6 +114,24 @@ Lines.prototype.parseLineText = function (string) {
     }
 };
 
+Lines.prototype.getLineText = function () {
+    "use strict";
+    var iterator,
+        string = "";
+    for (iterator = 0; iterator < this.points.length; iterator += 1) {
+        string = string.concat("[(");
+        string = string.concat(Math.floor(this.points[iterator][0][0]));
+        string = string.concat(", ");
+        string = string.concat(Math.floor(this.points[iterator][0][1]));
+        string = string.concat("), (");
+        string = string.concat(Math.floor(this.points[iterator][1][0]));
+        string = string.concat(", ");
+        string = string.concat(Math.floor(this.points[iterator][1][1]));
+        string = string.concat(")]; ");
+    }
+    return string;
+};
+
 Lines.prototype.drawLines = function () {
     //add line elements to scene
     "use strict";
@@ -300,6 +318,10 @@ var start = function (lines) {
         lines.update(zdistance);
     });
 
+    document.getElementById("gettxt").addEventListener("click", function () {
+        document.getElementById("intxt").value = lines.getLineText();
+    });
+
     document.getElementById("intxt").addEventListener("change", function () {
         lines.parseLineText(document.getElementById("intxt").value);
         lines.update(zdistance);
@@ -307,17 +329,17 @@ var start = function (lines) {
 
     document.addEventListener('mousedown', function () {
         PRESSING = true;
+        INTERSECTED = "";
     });
 
     document.addEventListener('mouseup', function () {
         PRESSING = false;
         PRESSABLE = false;
-        INTERSECTED = "";
     });
+
     document.addEventListener('mousemove', function (event) {
         //updates global mouse variable
-        var aux_object,
-            aux_line,
+        var aux_line,
             aux_handle,
             vector = new THREE.Vector3();
         event.preventDefault();
@@ -331,14 +353,17 @@ var start = function (lines) {
         //unprojecting the mouse position on the camera like this will only work with orthogonal cameras
         vector.unproject(camera);
         if (PRESSABLE && PRESSING) {
-            aux_object = scene.getObjectByName(INTERSECTED);
             aux_line = parseInt(INTERSECTED.substring(11, 12), 10);
             aux_handle = parseInt(INTERSECTED.substring(6, 7), 10);
-            lines.points[aux_line][aux_handle][0] = vector.x;
-            lines.points[aux_line][aux_handle][1] = vector.y;
-            lines.simpleUpdate();
+            try{
+                lines.points[aux_line][aux_handle][0] = vector.x;
+                lines.points[aux_line][aux_handle][1] = vector.y;
+                lines.simpleUpdate();
+            } catch (ignore) {
+            }
         }
     });
+
     window.addEventListener('resize', function() {
         //TODOO: fix aspect radio on resize
         camera.aspect = window.innerWidth / window.innerHeight;
