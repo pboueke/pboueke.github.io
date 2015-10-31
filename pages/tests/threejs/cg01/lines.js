@@ -1,47 +1,104 @@
+//jslint config
 /*global THREE, scene, window, document, requestAnimationFrame, console*/
-/*jslint continue:true*/
-var scene = new THREE.Scene();
-var camera = new THREE.PerspectiveCamera(120, window.innerWidth / window.innerHeight, 0.1, 1000);
-var renderer = new THREE.WebGLRenderer({ alpha: true });
-var controls = new THREE.OrbitControls(camera, document, renderer.domElement);
-//var controls = new THREE.TrackballControls( camera, document, renderer.domElement );
+/*jslint continue:true white:true, sloppy:true, browser:true*/
 
+//global
+var viewSize = 300;
+var aspectRatio = window.innerWidth / window.innerHeight;
+var scene = new THREE.Scene();
+var camera = new THREE.OrthographicCamera(-aspectRatio * viewSize / 2, aspectRatio * viewSize / 2, 0, viewSize);
+//var camera = new THREE.PerspectiveCamera(120, window.innerWidth / window.innerHeight, 0.1, 1000);
+var renderer = new THREE.WebGLRenderer({ alpha: true });
+var raycaster = new THREE.Raycaster();
+//var controls = new THREE.OrbitControls(camera, document, renderer.domElement);
+//var controls = new THREE.TrackballControls( camera, document, renderer.domElement );
+var mouse = new THREE.Vector2(), INTERSECTED, INTERSECTED_COLOR, PRESSING;
+
+//init
+INTERSECTED = "";
+PRESSING = false;
 renderer.setClearColor(0xffffff, 0);
 renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(window.devicePixelRatio);
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.sortObjects = false;
 document.body.appendChild(renderer.domElement);
+
+//interaction
+function onWindowResize() {
+    "use strict";
+    //TODOO: fix aspect radio on resize
+    camera.aspect = window.innerWidth / window.innerHeight;
+    camera.updateProjectionMatrix();
+    renderer.setSize(window.innerWidth, window.innerHeight);
+}
+
+function onDocumentMouseMove(event) {
+    //updates global mouse variable
+    "use strict";
+    var aux_object,
+        aux_line,
+        aux_handle,
+        vector = new THREE.Vector3();
+    event.preventDefault();
+    mouse.x = (event.clientX / renderer.domElement.width) * 2 - 1;
+    mouse.y = -(event.clientY / renderer.domElement.height) * 2 + 1;
+    vector.set(
+        (event.clientX / window.innerWidth) * 2 - 1,
+        -(event.clientY / window.innerHeight) * 2 + 1,
+        0.5
+    );
+    //unprojecting the mouse position on the camera like this will only work on orthogonal cameras
+    vector.unproject(camera);
+    if (INTERSECTED !== "" && PRESSING) {
+        aux_object = scene.getObjectByName(INTERSECTED);
+        aux_line = parseInt(INTERSECTED.substring(11, 12), 10);
+        aux_handle = parseInt(INTERSECTED.substring(6, 7), 10);
+        console.log(aux_handle);
+        L.points[aux_line][aux_handle][0] = vector.x;
+        L.points[aux_line][aux_handle][1] = vector.y;
+        L.simpleUpdate();
+
+    }
+}
+
+function onDocumentMouseDown() {
+    "use strict";
+    PRESSING = true;
+}
+
+function onDocumentMouseUp() {
+    "use strict";
+    PRESSING = false;
+}
+
+document.addEventListener('mousedown', onDocumentMouseDown, false);
+document.addEventListener('mouseup', onDocumentMouseUp, false);
+document.addEventListener('mousemove', onDocumentMouseMove, false);
+window.addEventListener('resize', onWindowResize, false);
 
 var random_color = function () {
     "use strict";
+    //Random Integer to hex color code
     return '#' + Math.floor(Math.random() * 16777215).toString(16);
 };
 
-var factorial = function (a) {
-    "use strict";
-    var x = 1,
-        f = 1;
-    while (x <= a) {
-        f *= x;
-        x += 1;
-    }
-    return f;
-};
-
-var combination = function (a, n) {
-    "use strict";
-    return factorial(a) / (factorial(n) * factorial(a - n));
-};
-
 function Lines() {
+    //main class that store and operate the lines
     "use strict";
-    this.points = [];
-    this.intersections = [];
-    this.lines = [];
-    this.spheres = [];
+    this.points = [];           //two points per line
+    this.intersections = [];    //intersection positions
+    this.lines = [];            //threejs line objects
+    this.handles = [];          //threejs line objects
+    this.spheres = [];          //threejs line objects
+    this.line_colors = [];
 }
 
 Lines.prototype.getLineParameters = function (arr) {
     // arr = [[x1, y1], [x2, y2]]
     // y = a * x + b
+    //Note: javascript allows us not to worry about parallel lines an other exceptions
+    //thanks to the way it handles infinity.
     "use strict";
     var ans = [];
     ans[0] = (arr[0][1] - arr[1][1]) / (arr[0][0] - arr[1][0]); //a
@@ -59,7 +116,7 @@ Lines.prototype.intersection = function (arr) {
     l1 = this.getLineParameters(arr[0]);
     l2 = this.getLineParameters(arr[1]);
     ans[0] = (l2[1] - l1[1]) / (l1[0] - l2[0]); //x
-    ans[1] = ans[0] * l1[0] + l1[1];
+    ans[1] = ans[0] * l1[0] + l1[1];  //y
     return ans;
 };
 
@@ -71,6 +128,7 @@ Lines.prototype.addLine = function (arr) {
 
 Lines.prototype.parseLineText = function (string) {
     //string format: "(line1), ..., (lineN)" = "[(x11, y11), (x12, y12)], ..., [(xN1, yN1), (xN2, yN2)]"
+    //Read string and add points to Lines object
     "use strict";
     var iterator,
         points = ["", "", "", ""], //x1, y1, x2, y2
@@ -107,17 +165,43 @@ Lines.prototype.parseLineText = function (string) {
 };
 
 Lines.prototype.drawLines = function () {
+    //add line elements to scene
     "use strict";
     var material = [],
         geometry = [],
+        handle_material = [],
+        handle_geometry = [],
+        handle_radius = 7,
+        handle_segments = 1,
+        handle_rings = 1,
+        color,
         iterator;
+    if (this.line_colors.length === 0) {
+        for (iterator = 0; iterator < this.points.length; iterator += 1) {
+            this.line_colors[iterator] = random_color();
+        }
+    }
+    //clean scene
     for (iterator = 0; iterator < this.lines.length; iterator += 1) {
         scene.remove(this.lines[iterator]);
     }
+    if (this.handles.length !== 0) {
+        for (iterator = 0; iterator < this.lines.length; iterator += 1) {
+            scene.remove(this.handles[iterator][0]);
+            scene.remove(this.handles[iterator][1]);
+            delete this.handles[iterator];
+        }
+    }
     this.lines = [];
+    this.handles = [];
+    //two handles per line
+    for (iterator = 0; iterator < this.points.length; iterator += 1) {
+        this.handles.push([]);
+    }
+    //add lines to scene
     for (iterator = 0; iterator < this.points.length; iterator += 1) {
         material[iterator] = new THREE.LineBasicMaterial({
-            color: random_color()
+            color: this.line_colors[iterator]
         });
         geometry[iterator] = new THREE.Geometry();
         geometry[iterator].vertices.push(
@@ -125,28 +209,44 @@ Lines.prototype.drawLines = function () {
             new THREE.Vector3(this.points[iterator][1][0], this.points[iterator][1][1], 0)
         );
         this.lines[iterator] = new THREE.Line(geometry[iterator], material[iterator]);
+        this.lines[iterator].name = "line".concat(iterator.toString());
+        handle_geometry[iterator] = new THREE.SphereGeometry(handle_radius, handle_segments, handle_rings);
+        handle_material[iterator] = new THREE.MeshBasicMaterial({
+            color: this.line_colors[iterator]
+        });
+        this.handles[iterator][0] = new THREE.Mesh(handle_geometry[iterator], handle_material[iterator]);
+        this.handles[iterator][0].position.x = this.points[iterator][0][0];
+        this.handles[iterator][0].position.y = this.points[iterator][0][1];
+        this.handles[iterator][0].position.z = 0;
+        this.handles[iterator][0].rotation.z += Math.PI;
+        this.handles[iterator][0].name = "handle0line".concat(iterator.toString());
+        this.handles[iterator][1] = new THREE.Mesh(handle_geometry[iterator], handle_material[iterator]);
+        this.handles[iterator][1].position.x = this.points[iterator][1][0];
+        this.handles[iterator][1].position.y = this.points[iterator][1][1];
+        this.handles[iterator][1].position.z = 0;
+        this.handles[iterator][1].name = "handle1line".concat(iterator.toString());
         scene.add(this.lines[iterator]);
+        scene.add(this.handles[iterator][0]);
+        scene.add(this.handles[iterator][1]);
     }
 };
 
 Lines.prototype.drawIntersections = function () {
+    //add intersections as spheres to scene
     "use strict";
     var material = [],
         geometry = [],
         position = [],
         intersec,
-        maxx1,
-        minx1,
-        maxy1,
-        miny1,
-        maxx2,
-        minx2,
-        maxy2,
-        miny2,
+        //max and min variables store the limits of each line
+        //e: maxx1 stores the maximum x value between the points that form the line 1
+        /*ignore:true */
+        maxx1, minx1, maxy1, miny1, maxx2, minx2, maxy2, miny2,
+        /*ignore:false */
         radius = 5,
         segments = 16,
         rings = 16,
-        iterator = 0, //parses columns
+        iterator = 0,
         jterator = 0, //parses rows
         kterator = 2, //reset iterator to new value
         current = 0;
@@ -154,7 +254,9 @@ Lines.prototype.drawIntersections = function () {
         scene.remove(this.spheres[iterator]);
     }
     this.spheres = [];
-    iterator = 1;
+    iterator = 1; //parses columns
+    //iterator, jterator and kterator are used to create a combination that iterates
+    //the current index trought every existing intersection
     while (jterator < this.points.length - 1) {
         intersec = this.intersection([this.points[jterator], this.points[iterator]]);
         maxx1 = Math.max(this.points[jterator][0][0], this.points[jterator][1][0]);
@@ -194,6 +296,7 @@ Lines.prototype.drawIntersections = function () {
 
 
 Lines.prototype.centerPosition = function () {
+    //return the medium value of the intersection points
     'use strict';
     var xm = 0,
         ym = 0,
@@ -209,18 +312,73 @@ Lines.prototype.centerPosition = function () {
 };
 
 Lines.prototype.update = function (z) {
+    //update scene with new parameters
+    "use strict";
+    var cpos,
+        iterator;
+    for (iterator = 0; iterator < this.points.length; iterator += 1) {
+        this.line_colors[iterator] = random_color();
+    }
+    this.drawLines();
+    this.drawIntersections();
+    cpos = this.centerPosition();
+    camera.position.x = cpos[0];
+    camera.position.y = cpos[1] - viewSize / 2;
+    camera.position.z = z;
+    //controls.target = new THREE.Vector3(cpos[0], cpos[1], 0);
+};
+
+Lines.prototype.simpleUpdate = function (z) {
+    //update scene with new parameters
     "use strict";
     this.drawLines();
     this.drawIntersections();
-    var cpos = this.centerPosition();
-    camera.position.z = z;
-    controls.target = new THREE.Vector3(cpos[0], cpos[1], 0);
+    //controls.target = new THREE.Vector3(cpos[0], cpos[1], 0);
 };
 
 var render = function () {
     "use strict";
+    var intersects,
+        aux_object,
+        aux_name = "";
     requestAnimationFrame(render);
+    raycaster.setFromCamera(mouse, camera);
+    intersects = raycaster.intersectObjects(scene.children);
+    if (INTERSECTED.substring(0, 6) === 'handle') {
+        aux_object = scene.getObjectByName(INTERSECTED);
+        //console.log(aux_object);
+        aux_object.material.color.setHex(INTERSECTED_COLOR);
+        INTERSECTED = "";
+    }
+    if (intersects.length > 0) {
+        //console.log(intersects[0]);
+        aux_name = intersects[0].object.name;
+        if (aux_name.substring(0, 6) === 'handle') {
+            INTERSECTED = aux_name;
+            INTERSECTED_COLOR = intersects[0].object.material.color.getHex();
+            //console.log(intersects[0].object);
+            intersects[0].object.material.color.setHex(0xff0000);
+        } else {
+            INTERSECTED = "";
+        }
+    }
     renderer.render(scene, camera);
 };
 
 render();
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+//
