@@ -12,7 +12,7 @@ title:            pboueke
 tagline:          ''
 description:      'My personal page. Here you may find some of my thoughts and experiences.'
 url:              https://pboueke.github.io
-baseurl:          /
+baseurl:          /pboueke
 
 author:
   name:           'Pedro Boueke'
