@@ -12,7 +12,7 @@ title:            pboueke
 tagline:          ''
 description:      'My personal page. Here you may find some of my thoughts and experiences.'
 url:              "https://pboueke.github.io"
-baseurl:          "/pboueke"
+baseurl:          ""
 
 author:
   name:           'Pedro Boueke'
@@ -23,5 +23,5 @@ paginate:         5
 # Custom vars
 version:          2.1.0
 
-github:       
+github:
   repo:           https://github.com/pboueke/pboueke.github.io
