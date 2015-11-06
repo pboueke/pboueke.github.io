@@ -1,0 +1,334 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="">
+    <meta name="author" content="">
+
+    <title>Leia-me</title>
+
+    <!-- Bootstrap Core CSS -->
+    <link href="../../css/bootstrap/bootstrap.min.css" rel="stylesheet">
+
+    <!-- Custom CSS -->
+    <link href="../../css/bootstrap/blog-post.css" rel="stylesheet">
+
+    <!-- HTML5 Shim and Respond.js IE8 support of HTML5 elements and media queries -->
+    <!-- WARNING: Respond.js doesn't work if you view the page via file:// -->
+    <script language="JavaScript" type="text/javascript" src="../../javascript/jquery.js"></script>
+    <script language="JavaScript" type="text/javascript" src="../../javascript/bootstrap.js"></script>
+    <!--[if lt IE 9]>
+        <script src="https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js"></script>
+        <script src="https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js"></script>
+    <![endif]-->
+
+</head>
+
+<body>
+
+  <!-- Page Content -->
+  <div class="container">
+
+      <div class="row">
+
+          <!-- Blog Post Content Column -->
+          <div class="col-lg-12">
+
+              <!-- Blog Post -->
+
+              <!-- Title -->
+              <br><br>
+              <h1>Leia-me <small>{documentação e detalhes}</small></h1>
+
+              <hr>
+              <p class="lead">&nbsp;&nbsp;&nbsp;&nbsp;
+                Breve documentação para o segundo trabalho prático do
+                curso <a href="http://www.lpc.ufrj.br/~leao/eel418/2015-1/eel418-2015-1.html">
+                Programação Avançada  </a> ministrado pelo professor
+                <a href="http://www.lpc.ufrj.br/~leao/"> Jorge Lopes
+                de Souza Leão</a>, no primeiro período de 2015 (2015.1) na UFRJ.
+              </p>
+              <p class="lead">&nbsp;&nbsp;&nbsp;&nbsp;
+                Aluno responsável: <a href="https://pboueke.github.io">
+                Pedro Hollanda Boueke </a>
+              </p>
+              <p class="lead">&nbsp;&nbsp;&nbsp;&nbsp;
+                 Contato: <code>phboueke@poli.ufrj.br</code>
+                 <small>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[use a abuse]</small)
+              </p>
+              <br>
+              <p class="lead">&nbsp;&nbsp;&nbsp;&nbsp;
+                 A respeito da usabilidade, acredito que ela seja suficientemente parecida com a discutida
+                em sala para que não precise explicá-la. Ela contém algumas mudanças que me pareceram úteis ou agradáveis.
+                 Não a considero, contudo, perfeita. Mais detalhes nesse sentido na seção 'Críticas e melhorias'.
+              </p>
+
+
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/1.11.1/jquery.min.js"></script>
+    <script src="http://maxcdn.bootstrapcdn.com/bootstrap/3.2.0/js/bootstrap.min.js"></script>
+
+    <!-- Page Content -->
+    <div class="container">
+
+      <nav class="col-xs-3 bs-docs-sidebar" float="left">
+          <ul id="sidebar" class="nav nav-stacked fixed">
+              <li>
+                  <a href="#GroupA">Bibliotecas/JARs externos</a>
+                  <ul class="nav nav-stacked">
+                      <li><a href="#GroupASub1">opencsv-2.2.jar</a></li>
+                      <li><a href="#GroupASub2">itextpdf-5.1.0.jar</a></li>
+                      <li><a href="#GroupASub3">commons-fileupload-1.2.jar</a></li>
+                      <li><a href="#GroupASub4">commons-io-2.4.jar</a></li>
+                      <li><a href="#GroupASub5">cos.jar</a></li>
+                  </ul>
+              </li>
+              <li>
+                  <a href="#GroupB">Setup</a>
+                  <ul class="nav nav-stacked">
+                      <li><a href="#GroupBSub1">Ambiente de desenvolvimento</a></li>
+                      <li><a href="#GroupBSub2">Configurações</a></li>
+                  </ul>
+              </li>
+              <li>
+                  <a href="#GroupC">Front-end</a>
+                  <ul class="nav nav-stacked">
+                      <li><a href="#GroupCSub1">Javascript e CSS</a></li>
+                      <li><a href="#GroupCSub2">JQuery</a></li>
+                      <li><a href="#GroupCSub3">Documentação/leia-me</a></li>
+                  </ul>
+              </li>
+              <li>
+                  <a href="#GroupD">Banco de Dados</a>
+                  <ul class="nav nav-stacked">
+                      <li><a href="#GroupDSub1">Modelo</a></li>
+                      <li><a href="#GroupDSub2">Atenções</a></li>
+                  </ul>
+              </li>
+              <li>
+                  <a href="#GroupE">Servidor</a>
+                  <ul class="nav nav-stacked">
+                      <li><a href="#GroupESub1">Modelo</a></li>
+                      <li><a href="#GroupESub2">Controller</a></li>
+                      <li><a href="#GroupESub3">UploadFile</a></li>
+                  </ul>
+              </li>
+              <li>
+                  <a href="#GroupF">Críticas e Melhorias</a>
+                  <ul class="nav nav-stacked">
+                      <li><a href="#GroupFSub1">Críticas</a></li>
+                      <li><a href="#GroupFSub2">Futuro</a></li>
+                  </ul>
+              </li>
+              <li>
+                  <a href="#GroupG">Licença</a>
+                  <ul class="nav nav-stacked">
+                      <li><a href="#GroupGSub1">???</a></li>
+                  </ul>
+              </li>
+          </ul>
+      </nav>
+      <!--Main Content -->
+      <div class="col-md-8">
+          <br><br><br><br><br><br>
+          <section id="GroupA" class="group">
+              <h3><b>Bibliotecas/JARs externos</b></h3>
+                <h4> Todas as bibliotecas utilizadas se encontram no diretório 'src/', na raiz do projeto. </h4>
+              <div id="GroupASub1" class="subgroup">
+                  <h4 align="justify"><b><code>opencsv-2.2.jar</code></b> <br>
+                      <p> Simples parser de arquivos CSV utilizado para exportação do catálogo.
+                  </h4>
+              </div>
+              <div id="GroupASub2" class="subgroup">
+                  <h4 align="justify"><b><code>itextpdf-5.1.0.jar</code></b> <br>
+                      <p> Biblioteca utilizada para realizar a conversão do arquivo CSV para PDF. </p>
+                  </h4>
+              </div>
+              <div id="GroupASub3" class="subgroup">
+                  <h4 align="justify"><b><code>commons-fileupload-1.2.jar</code></b> <br>
+                      <p> Bibliotea comum utilizada para importar as funções de de upload de arquivo padrões do Java</p>
+                  </h4>
+              </div>
+              <div id="GroupASub4" class="subgroup">
+                  <h4 align="justify"><b><code>commons-io-2.4.jar</code></b> <br>
+                      <p> Biblioteca comum utilizada para importar funções de escrita em disco do Java </p>
+                  </h4>
+              </div>
+              <div id="GroupASub5" class="subgroup">
+                  <h4 align="justify"><b><code>cos.jar</code></b> <br>
+                  <p> Biblioteca utilizada para obter parametros do form multpart provenientes do cliente e definir tamanho máximo de upload </p>
+                  </h4>
+              </div>
+          </section>
+          <section id="GroupB" class="group">
+              <h3><b>Setup</b></h3>
+              <div id="GroupBSub1" class="subgroup">
+                  <h4 align="justify"><b>Ambiente de desenvolvimento</b> <br>
+                    <p> O projeto foi desenvolvido utilizando as técnologias pedidas em sua especificação, na IDE Netbeans
+                      em um sistema Linux (Ubuntu14.04). O banco utilizado foi o Postgresql em modo autocommit ativado
+                      pelo driver. O servidor utilizado foi o Glassfish4.1 integrado ao Netbeans com Java EE 7 Web.</p>
+
+                  </h4>
+              </div>
+              <div id="GroupBSub2" class="subgroup">
+                  <h4 align="justify"><b>Configurações</b> <br>
+                    <p> Algumas classes devem ter seus parâmetros alterados manualmente.</p>
+                    <p> A classe <code>DadosBanco.java</code> deve ser preenchida com os dados do banco.</p>
+                    <p> A classe <code>DadosArquivos.java</code> deve ser preenchida com caminhos absolutos
+                      referentes ao servidor. O primeiro deles, <code>'caminhoArquivos'</code>, se refere a um diretório
+                      qualquer em seu sistema, a sua escolha, sob o qual o banco de dados tenha permissão de escrita. Essa pasta seria
+                      o local onde qualquer processamento externo sobre os arquivos tomaria lugar.
+                      O segundo, <code>'caminhoArquivosWeb'</code>, se refere à pasta na qual os arquivos enviados pelos
+                      clientes serão armazenados e distribuídos.
+                    </p><br>
+                  </h4>
+              </div>
+          </section>
+          <section id="GroupC" class="group">
+              <h3><b>Front-end</b></h3>
+              <div id="GroupCSub1" class="subgroup">
+                  <h4 align="justify"><b>Javascript, CSS e html</b> <br>
+                      <p><code>bibliopdf.js</code>: arquivo originalmente feito pelo professor
+                        Leão, mas totalmente modificado pelo responsável pelo projeto. Contém as
+                        principais funções que regem a utilização do cliente</p>
+                      <p><code>bibliopdf.css</code>: CSS feito pelo professor Leão para o layout da página. </p>
+                      <p><code>index.html</code>: página feita pelo professor Leão porém muito modificada
+                        para o projeto </p>
+                  </h4>
+              </div>
+              <div id="GroupCSub2" class="subgroup">
+                       <h4 align="justify"><b>JQuery</b> <br>
+                         <p><code>jquery.js</code>: versão mais recente do jquery </p>
+                         <p><code>jquery.form.js</code>: utilizado no form de envio de arquivo em multipart,
+                            permitindo verificação em tempo real do status do upload</p>
+                          <p><code>upload.js</code>: utilizado para o upload de arquivos </p>
+                  </h4>
+              </div>
+              <div id="GroupCSub3" class="subgroup">
+                       <h4 align="justify"><b>Documentação/leia-me</b> <br>
+                      <p><code>LEIAME.html</code>: página elaborada com o intuito de facilitar a correção e leitura <!DOCTYPE html>
+                      projeto. Utiliza o framework front-end Bootstrap (do twitter) para um design bonito e prático, localizado
+                      no diretório 'docm/'.
+                  </h4>
+              </div>
+          </section>
+          <section id="GroupD" class="group">
+              <h3><b>Banco de Dados</b></h3>
+              <div id="GroupDSub1" class="subgroup">
+                  <h4 align="justify"><b>Modelo</b> <br>
+                      <p> O modelo utilizado é exatamente o mesmo que o inicialmente fornecido Pelo professor.
+                  </h4>
+              </div>
+              <div id="GroupDSub2" class="subgroup">
+                       <h4 align="justify"><b>Atenções</b> <br>
+                          <p> As classes que lidam com o banco de dados forma idealizadas de maneira completamente
+                              idependentes umas das outras e com nomeclatura de fácil leitura, sempre (e ecxepcionalmente) em potuguês.
+                          </p>
+                          <p> A classe <code>Buscador.java</code> foi feita de forma a gerar querys de busca dinâmicas, o que contribui para seu
+                            grande tamanho e difícil legibilidade
+                          </p>
+                          <p> A classe <code> ExportarCatalogo.java</code> é responsável por gerar o arquivo CSV e convertê-lo para PDF.
+                          <br>
+                  </h4>
+              </div>
+          </section>
+          <section id="GroupE" class="group">
+              <h3><b>Servidor</b></h3>
+              <div id="GroupESub1" class="subgroup">
+                  <h4 align="justify"><b>Modelo</b> <br>
+                      <p> As classes do modelo incluem as que interagem com o banco de dados, as que armazenam informações
+                        locais e algumas outras de tratamento de repasse de dados.
+                      </p>
+                  </h4>
+              </div>
+              <div id="GroupESub2" class="subgroup">
+                  <h4 align="justify"><b>Controller</b> <br>
+                      <p> Principal Servlet do projeto. Recebe todas as requisições AJAX e as trata com um identificador "tipo"
+                        enviado pelo cliente como um atributo Json, utilizando a classe JsonObject. Envia respostas na forma de
+                        arrays json, utilizando a classe JsonArray.
+                  </h4>
+              </div>
+              <div id="GroupESub3" class="subgroup">
+                  <h4 align="justify"><b>UploadFile</b> <br>
+                      <p> Servlet dedicado ao upload de arquivos. Recebe requisições multipart e as trata de acordo, sem
+                        responder diretamente ao cliente o sucesso da transmissção (o qual é indicado ao cliente por meio do form jquery).
+                  </h4>
+              </div>
+          </section>
+          <section id="GroupF" class="group">
+              <h3><b>Críticas e Melhorias</b></h3>
+              <div id="GroupFSub1" class="subgroup">
+                  <h4 align="justify"><b>Críticas</b> <br>
+                      <p> Por se tratar de uma aplicação desenvolvida como parte de um curso universitário,
+                        sem um forte compromisso com a usabilidade final do usuário e, também, considerando o tempo
+                        limitado, alguns aspectos do projeto foram, até certo ponto, negligenciados.
+                      </p>
+                      <p> O primeiro e mais evidente deles é o sistema de busca, que considera apenas as palavras exatas
+                        presentes no banco de dados. Normalização de caracteres e busca por palavras seriam métodos fáceis de
+                        minimizar o impacto dessa decisão de design, contudo, julguei não valerem a pena pelo esforço necessário,
+                        na modificação desde o banco até a página acessada pelo cliente.
+                      </p>
+                      <p> Outro ponto que atrapalha a usabilidade do cliente é o fato de que algumas das funções javascript
+                        não promoverem a atualização instantânea da página após a realização de uma certa ação. é uma questão de
+                        <i>timing</i> que ainda não acertei, embora funcionem na maior parte das vezes.
+                      </p>
+                      <p>
+                        Por fim, restam questões como layout da página, <i>flow</i> visual e embelezamento a serem mais discutidas
+                        e melhoradas, mas que levariam muito tempo até serem acertadas.
+                      </p>
+                      <p> Essa é a versão beta <code>v0.2</code> e, como sempre é dito na aula, você só acerta (quase) tudo na quinta ou sexta vez
+                        que está refazendo o projeto.
+                      </p>
+                  </h4>
+              </div>
+              <div id="GroupFSub2" class="subgroup">
+                  <h4 align="justify"><b>Futuro</b> <br>
+                      <p> Alguns pontos valem a pena ser levantados. O primeiro se trata do upload de arquivos. No modelo
+                        atual, os arquivos são recebidos e depois copiados para o diretório de distribuição. Ainda nesse ponto,
+                        era de meu interesse permitir a encriptação do arquivo com uma senha fornecida pelo usuário, mas não tive
+                        tempo de investigar essa ideia a fundo.
+                      </p>
+                      <p> Fora isso, seria interessante aprimorar as funcionalidades extras que adicionei ao projeto, como
+                        especificar o tipo de exportação do catálogo em pdf e aprimorar o sistema de comentários por meio da implementação
+                        efetiva de um banco de cliente/usuários.
+                      </p>
+
+                  </h4>
+              </div>
+          </section>
+          <section id="GroupG" class="group">
+              <h3><b>Licença</b></h3>
+              <div id="GroupGSub1" class="subgroup">
+                  <h4 align="justify"><b>???</b> <br>
+                      <p> A depender de mim, distribuiria esse projeto por meio da licença MIT, contudo, por contar
+                      com código de terceitos (do professor Leão), estaria a depender dele. Tudo não licenciado está protegido
+                      pela lei do do dos direitos autorais (<i>copyright</i> &copy;).</p>
+                  </h4>
+              </div>
+          </section>
+      </div>
+  </div>
+  <br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+                  <hr>
+
+
+              <script type="text/javascript">
+                  $('body').scrollspy({
+                      target: '.bs-docs-sidebar',
+                      offset: 60
+                  });
+              </script>
+
+
+              </div>
+
+
+      </div>
+      <!-- /.container -->
+
+  </body>
+
+</html>
