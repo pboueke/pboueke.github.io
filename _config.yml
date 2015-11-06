@@ -11,8 +11,8 @@ permalink:        pretty
 title:            pboueke
 tagline:          ''
 description:      'My personal page. Here you may find some of my thoughts and experiences.'
-url:              https://pboueke.github.io
-baseurl:          /
+url:             "https://pboueke.github.io"
+baseurl:          /pboueke/
 
 author:
   name:           'Pedro Boueke'
