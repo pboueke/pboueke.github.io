@@ -2,7 +2,7 @@
   <div class="container sidebar-sticky">
     <div class="sidebar-about">
       <h1>
-        <a href="{{ site.baseurl }}about">
+        <a href="{{ site.baseurl }}/about">
           {{ site.title }}
         </a>
       </h1>
@@ -10,7 +10,7 @@
     </div>
 
     <nav class="sidebar-nav">
-      <a class="sidebar-nav-item{% if page.url == site.baseurl %} active{% endif %}" href="{{ site.baseurl }}">Home</a>
+      <a class="sidebar-nav-item{% if page.url == site.baseurl %} active{% endif %}" href="{{ site.baseurl }}/">Home</a>
 
       {% comment %}
         The code below dynamically generates a sidebar nav of pages with
@@ -27,11 +27,11 @@
       {% endfor %}
       {% endcomment %}
 
-      <a class="sidebar-nav-item" href="{{ site.baseurl }}projects">Projects</a>
+      <a class="sidebar-nav-item" href="{{ site.baseurl }}/projects">Projects</a>
       <a class="sidebar-nav-item" href="https://speakerdeck.com/pboueke">Presentations</a>
-      <a class="sidebar-nav-item" href="{{ site.baseurl }}ressources">Ressources</a>
-      <a class="sidebar-nav-item" href="{{ site.baseurl }}extras">Extras</a>
-      <a class="sidebar-nav-item" href="{{ site.baseurl }}about">About</a>
+      <a class="sidebar-nav-item" href="{{ site.baseurl }}/ressources">Ressources</a>
+      <a class="sidebar-nav-item" href="{{ site.baseurl }}/extras">Extras</a>
+      <a class="sidebar-nav-item" href="{{ site.baseurl }}/about">About</a>
     </nav>
 
     <p>&copy; {{ site.time | date: '%Y' }}</p>
